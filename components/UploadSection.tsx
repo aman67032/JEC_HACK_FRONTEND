@@ -56,7 +56,7 @@ export default function UploadSection() {
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+    <section id="upload" className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Upload: Prescription & Pharmacy Bill</h2>
       </div>

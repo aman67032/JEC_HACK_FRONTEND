@@ -53,7 +53,7 @@ export default function InteractionChecker() {
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+    <section id="interactions" className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Drug Interaction Checker</h2>
         <button onClick={run} disabled={loading} className="btn-secondary px-3 py-2 text-xs font-semibold disabled:opacity-60">{loading ? "Checking..." : "Run Check"}</button>

@@ -1,6 +1,6 @@
 export default function ReminderSection() {
   return (
-    <section className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+    <section id="reminders" className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Reminders</h2>
         <button className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-black">Add Schedule</button>

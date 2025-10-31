@@ -11,7 +11,7 @@ export default function AdherenceTracker() {
   const adherence = 85;
 
   return (
-    <section className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+    <section id="caregiver" className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Adherence</h2>
         <span className="text-xs text-zinc-500">This week: {adherence}%</span>

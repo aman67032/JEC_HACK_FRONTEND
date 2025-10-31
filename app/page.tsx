@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-16 lg:grid-cols-2">
@@ -48,32 +50,32 @@ export default function Home() {
         <div className="grid gap-6">
           <h2 className="text-3xl font-semibold">What you can do</h2>
           <div className="grid gap-6 md:grid-cols-3">
-            <div className="card p-5">
+            <Link href="/dashboard#caregiver" className="card p-5 hover:bg-black/[.03]">
               <h3 className="mb-1 text-lg font-semibold">Caregiver Sync</h3>
               <p className="text-base text-[color:var(--color-muted)]">Family gets notified when meds are marked taken or missed.</p>
-            </div>
-            <div className="card p-5">
+            </Link>
+            <Link href="/dashboard#interactions" className="card p-5 hover:bg-black/[.03]">
               <h3 className="mb-1 text-lg font-semibold">Interaction Warnings</h3>
               <p className="text-base text-[color:var(--color-muted)]">Spot risky combinations using RxNav/OpenFDA before they cause harm.</p>
-            </div>
-            <div className="card p-5">
+            </Link>
+            <Link href="/dashboard#history" className="card p-5 hover:bg-black/[.03]">
               <h3 className="mb-1 text-lg font-semibold">Dosage History</h3>
               <p className="text-base text-[color:var(--color-muted)]">Every change is logged with who changed it and why.</p>
-            </div>
+            </Link>
           </div>
         </div>
 
         <div className="grid gap-6">
           <h2 className="text-3xl font-semibold">Emergency, simplified</h2>
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="card p-6">
+            <Link href="/dashboard#emergency" className="card p-6 hover:bg-black/[.03]">
               <h3 className="mb-2 text-lg font-semibold">Smart Med Card (QR)</h3>
               <p className="text-base text-[color:var(--color-muted)]">Share a time-limited, read-only summary of meds, allergies, and conditions with hospital staff.</p>
-            </div>
-            <div className="card p-6">
+            </Link>
+            <Link href="/dashboard#emergency" className="card p-6 hover:bg-black/[.03]">
               <h3 className="mb-2 text-lg font-semibold">Nearest capable hospital</h3>
               <p className="text-base text-[color:var(--color-muted)]">See nearby hospitals and route there. Pre-alert can be sent with key info (simulated).</p>
-            </div>
+            </Link>
           </div>
         </div>
 

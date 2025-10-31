@@ -1,6 +1,6 @@
 export default function HistoryReport() {
   return (
-    <section className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+    <section id="history" className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">History & Reports</h2>
         <button className="rounded-full border border-zinc-300 px-3 py-1 text-xs hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900">Download PDF</button>
