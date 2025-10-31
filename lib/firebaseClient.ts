@@ -29,9 +29,12 @@ function validateFirebaseConfig() {
       appId: 'NEXT_PUBLIC_FIREBASE_APP_ID'
     };
     const missingVars = missing.map(key => envVarMap[key] || key).join(', ');
+    const deployHint = `\n\n🚨 DEPLOYMENT ISSUE: Environment variables are missing!\n` +
+      `For Vercel: Go to Project Settings → Environment Variables → Add all NEXT_PUBLIC_FIREBASE_* variables.\n` +
+      `See VERCEL_DEPLOYMENT_GUIDE.md for detailed instructions.\n` +
+      `For local dev: See FIREBASE_SETUP_GUIDE.md for instructions.`;
     throw new Error(
-      `Firebase configuration is missing. Please add the following environment variables to your .env.local file:\n${missingVars}\n\n` +
-      `See FIREBASE_SETUP_GUIDE.md for instructions on how to get these values from Firebase Console.`
+      `Firebase configuration is missing. Please add the following environment variables:\n${missingVars}${deployHint}`
     );
   }
 

@@ -61,10 +61,34 @@ export default function UploadSection() {
         <h2 className="text-lg font-semibold">Upload: Prescription & Pharmacy Bill</h2>
       </div>
       <div className="grid gap-3">
-        <input type="file" multiple accept="image/*,.pdf" onChange={onSelect} className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-950" />
+        <div className="flex items-center gap-3">
+          <input 
+            type="file" 
+            multiple 
+            accept="image/*,.pdf" 
+            onChange={(e) => {
+              onSelect(e);
+              if (e.target.files && e.target.files.length > 0) {
+                runOCR();
+              }
+            }} 
+            className="flex-1 rounded-lg border-2 border-[color:var(--color-border)] bg-white px-4 py-3 text-base font-semibold dark:border-zinc-800 dark:bg-zinc-950 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors" 
+          />
+        </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={runOCR} disabled={loading} className="rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-black">{loading ? "Processing..." : "Run OCR"}</button>
-          {files && <span className="text-xs text-zinc-600 dark:text-zinc-400">{files.length} file(s) selected</span>}
+          <button 
+            type="button" 
+            onClick={runOCR} 
+            disabled={loading || !files || files.length === 0} 
+            className="btn-primary px-6 py-3 text-base font-bold rounded-full disabled:opacity-60 shadow-lg hover:shadow-xl transition-all"
+          >
+            {loading ? "🔄 Processing..." : "📷 Run OCR"}
+          </button>
+          {files && (
+            <span className="text-base font-semibold text-[color:var(--color-muted)]">
+              {files.length} file(s) selected
+            </span>
+          )}
         </div>
         {extracted.length > 0 && (
           <div className="rounded-lg border border-zinc-200 p-3 text-sm dark:border-zinc-800">

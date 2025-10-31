@@ -60,7 +60,30 @@ export default function MedicineList() {
     <section className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Medication List</h2>
-        <button className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-black">Add</button>
+        <button 
+          onClick={() => {
+            const name = prompt("Medicine Name:");
+            if (!name) return;
+            const dosage = prompt("Dosage (e.g., 500mg):") || "";
+            const frequency = prompt("Frequency (e.g., 2/day, morning, night):") || "";
+            const newMed = {
+              id: `${Date.now()}`,
+              name,
+              dosage,
+              frequency,
+              start: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
+              end: "",
+              addedBy: "Manual",
+              updated: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+            };
+            setState((prev) => ({ ...prev, medications: [...prev.medications, newMed] }));
+            syncFromStore();
+            alert(`✅ Added ${name} to your medication list!`);
+          }}
+          className="btn-primary px-4 py-2 text-sm font-bold rounded-full"
+        >
+          ➕ Add Medicine
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
