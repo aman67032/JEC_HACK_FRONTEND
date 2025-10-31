@@ -1,21 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Warm, accessible theme (Theme A: Comfort & Warmth) */
+  --background: #FFF8E7; /* Cream */
+  --foreground: #3B2F2F; /* Dark Brown for readable contrast */
+  --muted-text: #5a4d4d; /* Softer dark text */
+  --surface: #FFFFFF; /* Cards */
+  --border: #E7DDD3; /* Warm light border */
+  --accent: #F88379; /* Coral for CTAs */
+  --accent-hover: #e36a60;
+  --sage: #A8C3A0; /* Calm accent */
+  --sage-hover: #97b490;
+  --sky: #78B7D0; /* Secondary */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-muted: var(--muted-text);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-sage: var(--sage);
+  --color-sage-hover: var(--sage-hover);
+  --color-sky: var(--sky);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Optional dark mode tuned to warm low-glare */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1d1a19;
+    --foreground: #f1e9e4;
+    --muted-text: #d9cec7;
+    --surface: #151312;
+    --border: #2a2624;
+    --accent: #FF8F86;
+    --accent-hover: #ff7a70;
+    --sage: #98b493;
+    --sage-hover: #87a582;
+    --sky: #7fc3db;
   }
 }
 
@@ -23,4 +49,25 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  font-size: 18px; /* Larger base for readability */
+  line-height: 1.7;
 }
+
+/* Utility wrappers to align with theme */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 9999px;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary {
+  background: var(--sage);
+  color: #16361c;
+  border-radius: 9999px;
+}
+.btn-secondary:hover { background: var(--sage-hover); }

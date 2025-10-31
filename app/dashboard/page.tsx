@@ -1,14 +1,28 @@
+import ProfileSection from "@/components/ProfileSection";
+import UploadSection from "@/components/UploadSection";
+import MedicineList from "@/components/MedicineList";
+import ReminderSection from "@/components/ReminderSection";
+import AdherenceTracker from "@/components/AdherenceTracker";
+import EmergencyButton from "@/components/EmergencyButton";
+import HistoryReport from "@/components/HistoryReport";
+import InteractionChecker from "@/components/InteractionChecker";
+
 export default function DashboardPage() {
   return (
-    <main className="mx-auto min-h-[50vh] w-full max-w-6xl px-4 py-16">
-      <h1 className="mb-4 text-3xl font-semibold text-zinc-900 dark:text-zinc-100">Dashboard</h1>
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="h-40 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700" />
-        <div className="h-40 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700" />
-        <div className="h-40 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700" />
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="col-span-1 grid gap-6 lg:col-span-2">
+        <ProfileSection />
+        <UploadSection />
+        <MedicineList />
+        <InteractionChecker />
+        <ReminderSection />
       </div>
-    </main>
+      <div className="col-span-1 grid gap-6">
+        <AdherenceTracker />
+        <HistoryReport />
+        <EmergencyButton />
+      </div>
+    </div>
   );
 }
-
 

@@ -1,97 +1,91 @@
-import Image from "next/image";
-import AnimatedText from "../component/AnimatedText";
-import RevealOnScroll from "../component/RevealOnScroll";
-import HeroSection from "../component/sections/HeroSection";
-import AboutSection from "../component/sections/AboutSection";
-import ContactSection from "../component/sections/ContactSection";
-import FeaturesSection from "../component/sections/FeaturesSection";
-import CTASection from "../component/sections/CTASection";
-
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="w-full bg-white dark:bg-black">
-        <HeroSection />
-        <div className="mx-auto w-full max-w-3xl px-6 py-24">
-          <Image
-            className="dark:invert"
-            src="/next.svg"
-            alt="Next.js logo"
-            width={100}
-            height={20}
-            priority
-          />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            <AnimatedText text="Welcome to JEC" />
+    <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-16 lg:grid-cols-2">
+      <section className="flex flex-col gap-6">
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-white/60 px-3 py-1 text-sm text-[color:var(--color-muted)]">
+          💊 PillSync 360 — Smart Medication & Emergency Companion
+        </span>
+        <h1 className="text-5xl font-semibold leading-tight md:text-6xl">
+          Keep family safe with medicine tracking and instant emergency handoff
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+        <p className="max-w-2xl text-[color:var(--color-muted)] text-xl">
+          Upload prescriptions, confirm medicines, get interaction warnings, track adherence, and share a secure Smart Med Card with hospitals during emergencies.
+          </p>
+        <div className="flex flex-wrap gap-3">
+          <a href="/signup" className="btn-primary inline-flex items-center justify-center px-6 py-3 text-base font-semibold">
+            Get Started
+          </a>
+          <a href="/dashboard" className="btn-secondary inline-flex items-center justify-center px-6 py-3 text-base font-semibold">
+            View Demo Dashboard
+          </a>
+        </div>
+        <ul className="mt-6 grid gap-3 text-base text-[color:var(--color-muted)]">
+          <li>• Upload prescription + bill (OCR assist, manual confirm)</li>
+          <li>• Drug interaction check via RxNav/OpenFDA</li>
+          <li>• Reminders and adherence tracking with caregiver sync</li>
+          <li>• Emergency QR for safe, fast hospital handoff</li>
+        </ul>
+      </section>
+      <section className="grid gap-4">
+        <div className="card p-6">
+          <h3 className="mb-2 text-base font-semibold">How it works</h3>
+          <ol className="grid gap-2 text-base text-[color:var(--color-muted)]">
+            <li>1) Set up and confirm medicines</li>
+            <li>2) Get reminders and caregiver updates</li>
+            <li>3) Press Emergency to generate QR</li>
+            <li>4) Hospital scans and treats safely</li>
+          </ol>
+        </div>
+        <div className="card p-6">
+          <h3 className="mb-2 text-base font-semibold">For Demo</h3>
+          <p className="text-base text-[color:var(--color-muted)]">
+            This is a frontend prototype. Data is simulated. Connect to Firebase later for auth and storage.
           </p>
         </div>
-        </div>
-        <div className="mx-auto w-full max-w-3xl px-6 pb-24 flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-        <div className="mx-auto mt-12 grid w-full max-w-3xl gap-12 px-6 pb-24">
-          <RevealOnScroll>
-            <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
-              <h2 className="mb-2 text-xl font-semibold text-black dark:text-zinc-50">GSAP Scroll Reveal</h2>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                This block reveals into view using GSAP + ScrollTrigger.
-              </p>
+      </section>
+
+      <section className="col-span-1 lg:col-span-2 grid gap-10">
+        <div className="grid gap-6">
+          <h2 className="text-3xl font-semibold">What you can do</h2>
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="card p-5">
+              <h3 className="mb-1 text-lg font-semibold">Caregiver Sync</h3>
+              <p className="text-base text-[color:var(--color-muted)]">Family gets notified when meds are marked taken or missed.</p>
             </div>
-          </RevealOnScroll>
-          <RevealOnScroll y={80} delay={0.1}>
-            <div className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
-              <h2 className="mb-2 text-xl font-semibold text-black dark:text-zinc-50">Anime.js Timeline</h2>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Use the provided hook to orchestrate complex sequences with anime.js.
-              </p>
+            <div className="card p-5">
+              <h3 className="mb-1 text-lg font-semibold">Interaction Warnings</h3>
+              <p className="text-base text-[color:var(--color-muted)]">Spot risky combinations using RxNav/OpenFDA before they cause harm.</p>
             </div>
-          </RevealOnScroll>
+            <div className="card p-5">
+              <h3 className="mb-1 text-lg font-semibold">Dosage History</h3>
+              <p className="text-base text-[color:var(--color-muted)]">Every change is logged with who changed it and why.</p>
+            </div>
+          </div>
         </div>
-        <FeaturesSection />
-        <AboutSection />
-        <ContactSection />
-        <CTASection />
-      </main>
+
+        <div className="grid gap-6">
+          <h2 className="text-3xl font-semibold">Emergency, simplified</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="card p-6">
+              <h3 className="mb-2 text-lg font-semibold">Smart Med Card (QR)</h3>
+              <p className="text-base text-[color:var(--color-muted)]">Share a time-limited, read-only summary of meds, allergies, and conditions with hospital staff.</p>
+            </div>
+            <div className="card p-6">
+              <h3 className="mb-2 text-lg font-semibold">Nearest capable hospital</h3>
+              <p className="text-base text-[color:var(--color-muted)]">See nearby hospitals and route there. Pre-alert can be sent with key info (simulated).</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <h2 className="mb-3 text-3xl font-semibold">Privacy & Accessibility</h2>
+          <ul className="grid gap-2 text-base text-[color:var(--color-muted)]">
+            <li>• Your data, your control — role-based access and revocable shares.</li>
+            <li>• Large fonts, high contrast, low glare color palette.</li>
+            <li>• Uses color plus labels/icons for clarity.</li>
+          </ul>
+        </div>
+      </section>
     </div>
   );
 }
