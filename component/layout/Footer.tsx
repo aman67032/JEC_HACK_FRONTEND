@@ -8,8 +8,8 @@ export default function Footer() {
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4">
         <p>© {new Date().getFullYear()} JEC. All rights reserved.</p>
         <div className="flex items-center gap-4">
-          <a href="#" className="hover:underline">Privacy</a>
-          <a href="#" className="hover:underline">Terms</a>
+          <a href="/privacy" className="hover:underline">Privacy</a>
+          <a href="/terms" className="hover:underline">Terms</a>
         </div>
       </div>
     </footer>

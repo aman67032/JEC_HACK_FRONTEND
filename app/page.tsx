@@ -4,6 +4,8 @@ import RevealOnScroll from "../component/RevealOnScroll";
 import HeroSection from "../component/sections/HeroSection";
 import AboutSection from "../component/sections/AboutSection";
 import ContactSection from "../component/sections/ContactSection";
+import FeaturesSection from "../component/sections/FeaturesSection";
+import CTASection from "../component/sections/CTASection";
 
 export default function Home() {
   return (
@@ -85,8 +87,10 @@ export default function Home() {
             </div>
           </RevealOnScroll>
         </div>
+        <FeaturesSection />
         <AboutSection />
         <ContactSection />
+        <CTASection />
       </main>
     </div>
   );
