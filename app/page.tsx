@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { firebaseAuth } from "@/lib/firebaseClient";
 import Link from "next/link";
-import MedicineSchedule from "@/components/MedicineSchedule";
+import CameraDialog from "@/components/CameraDialog";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(firebaseAuth(), (user) => {
@@ -15,6 +16,12 @@ export default function Home() {
     });
     return () => unsub();
   }, []);
+
+  const handlePhotoCapture = (file: File) => {
+    console.log("Photo captured:", file);
+    setCameraOpen(false);
+    alert("📷 Photo captured! You can upload prescriptions from the dashboard.");
+  };
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-16 py-8">
@@ -38,13 +45,23 @@ export default function Home() {
           <a href="/dashboard" className="btn-secondary inline-flex items-center justify-center px-8 py-4 text-xl font-bold rounded-full shadow-lg hover:shadow-xl transition-all">
             View Dashboard
           </a>
+          <button
+            onClick={() => setCameraOpen(true)}
+            className="btn-secondary inline-flex items-center justify-center px-8 py-4 text-xl font-bold rounded-full shadow-lg hover:shadow-xl transition-all"
+          >
+            📷 Scan Prescription
+          </button>
         </div>
       </section>
 
-      {/* Medicine Schedule - Hero Section */}
-      <section className="w-full">
-        <MedicineSchedule />
-      </section>
+      {/* Camera Dialog */}
+      <CameraDialog
+        isOpen={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={(url) => console.log("Image captured:", url)}
+        onTakePhoto={handlePhotoCapture}
+        medicineName="Prescription"
+      />
 
       {/* Quick Start Guide */}
       <section className="card p-8 space-y-6">
