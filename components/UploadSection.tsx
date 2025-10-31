@@ -11,7 +11,7 @@ export default function UploadSection() {
   const [files, setFiles] = useState<FileList | null>(null);
   const [extracted, setExtracted] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [useServerOCR, setUseServerOCR] = useState(true); // Default to server-side OCR
+  const [useServerOCR, setUseServerOCR] = useState(false); // Default to client-side OCR for reliability
 
   function onSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const list = e.target.files;
@@ -32,11 +32,22 @@ export default function UploadSection() {
       }
     } catch (error: any) {
       console.error("OCR Error:", error);
-      alert(error.message || "OCR processing failed. Try client-side OCR.");
-      // Fallback to client-side OCR
+      const errorMessage = error?.message || "OCR processing failed";
+      console.error("Full error:", error);
+      
+      // If server OCR fails, automatically fallback to client-side
       if (useServerOCR) {
+        console.log("Falling back to client-side OCR...");
         setUseServerOCR(false);
-        await runClientOCR();
+        try {
+          await runClientOCR();
+          alert("Server OCR failed, but client-side OCR completed successfully.");
+        } catch (clientError: any) {
+          console.error("Client OCR also failed:", clientError);
+          alert(`OCR failed: ${errorMessage}. Please try again or check your connection.`);
+        }
+      } else {
+        alert(`OCR processing failed: ${errorMessage}`);
       }
     } finally {
       setLoading(false);
@@ -51,42 +62,58 @@ export default function UploadSection() {
       throw new Error("You must be logged in to use server-side OCR");
     }
 
+    try {
+      // Initialize Firebase Storage
+      const storage = firebaseStorage();
+      if (!storage) {
+        throw new Error("Firebase Storage not initialized. Please check your Firebase configuration.");
+      }
+    } catch (storageError: any) {
+      throw new Error(`Firebase Storage error: ${storageError.message || "Storage not available"}`);
+    }
+
     const results: string[] = [];
     const medicines: Array<{ name: string; dosage: string; frequency?: string }> = [];
 
     for (const file of Array.from(files)) {
-      // Upload to Firebase Storage
-      const timestamp = Date.now();
-      const fileName = `prescription_${timestamp}_${file.name}`;
-      const storageRef = ref(firebaseStorage(), `prescriptions/${user.uid}/${fileName}`);
-      
-      await uploadBytes(storageRef, file);
-      const imageUrl = await getDownloadURL(storageRef);
+      try {
+        // Upload to Firebase Storage
+        const timestamp = Date.now();
+        const fileName = `prescription_${timestamp}_${file.name}`;
+        const storageRef = ref(firebaseStorage(), `prescriptions/${user.uid}/${fileName}`);
+        
+        await uploadBytes(storageRef, file);
+        const imageUrl = await getDownloadURL(storageRef);
 
-      // Call server-side OCR API
-      const response = await fetch("/api/prescription/ocr", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageUrl,
-          userId: user.uid,
-          prescriptionId: `pres_${timestamp}`,
-        }),
-      });
+        // Call server-side OCR API
+        const response = await fetch("/api/prescription/ocr", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            imageUrl,
+            userId: user.uid,
+            prescriptionId: `pres_${timestamp}`,
+          }),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Server OCR failed");
-      }
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ error: "Server OCR failed" }));
+          throw new Error(error.error || `Server OCR failed: ${response.statusText}`);
+        }
 
-      const data = await response.json();
-      if (data.extractedText) {
-        results.push(data.extractedText);
-      }
-      if (data.medicines && data.medicines.length > 0) {
-        medicines.push(...data.medicines);
+        const data = await response.json();
+        if (data.extractedText) {
+          results.push(data.extractedText);
+        }
+        if (data.medicines && data.medicines.length > 0) {
+          medicines.push(...data.medicines);
+        }
+      } catch (fileError: any) {
+        console.error(`Error processing file ${file.name}:`, fileError);
+        // Continue with other files, but add error message
+        results.push(`Error processing ${file.name}: ${fileError.message}`);
       }
     }
 
@@ -157,7 +184,13 @@ export default function UploadSection() {
             onChange={(e) => {
               onSelect(e);
               if (e.target.files && e.target.files.length > 0) {
-                runOCR();
+                // Use setTimeout to avoid blocking the UI thread
+                setTimeout(() => {
+                  runOCR().catch((error) => {
+                    console.error("Failed to run OCR:", error);
+                    setLoading(false);
+                  });
+                }, 0);
               }
             }} 
             className="flex-1 rounded-lg border-2 border-[color:var(--color-border)] bg-white px-4 py-3 text-base font-semibold dark:border-zinc-800 dark:bg-zinc-950 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors" 
