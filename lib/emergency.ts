@@ -18,6 +18,9 @@ export async function createEmergencySummary(params: {
   const nowIso = new Date().toISOString();
   const expiresAtIso = new Date(Date.now() + (params.ttlMinutes ?? 30) * 60 * 1000).toISOString();
 
+  // Get origin safely (works in browser)
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+
   const payload: EmergencySummaryDoc = {
     summaryId,
     generatedAt: nowIso,
@@ -29,16 +32,29 @@ export async function createEmergencySummary(params: {
     allergies: params.allergies,
     currentMedications: params.currentMedications,
     emergencyContact: params.emergencyContact,
-    qrLink: `${location.origin}/emergency/${summaryId}`,
+    qrLink: `${origin}/emergency/${summaryId}`,
     status: "active"
   };
 
-  // Write to public collection (readable without auth while not expired)
-  await setDoc(doc(db, "publicEmergency", summaryId), payload);
+  try {
+    // Write to public collection (readable without auth while not expired)
+    await setDoc(doc(db, "publicEmergency", summaryId), payload);
+    console.log("✅ Emergency summary written to publicEmergency collection");
+  } catch (error) {
+    console.error("Failed to write to publicEmergency:", error);
+    throw new Error(`Failed to create public emergency summary: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 
   // If userId provided, also store under user's private tree
   if (params.userId) {
-    await setDoc(doc(collection(doc(db, "users", params.userId), "emergencySummaries"), summaryId), payload);
+    try {
+      await setDoc(doc(collection(doc(db, "users", params.userId), "emergencySummaries"), summaryId), payload);
+      console.log("✅ Emergency summary written to user's private collection");
+    } catch (error) {
+      console.error("Failed to write to user's emergencySummaries:", error);
+      // Don't throw - public version was created successfully
+      console.warn("Warning: Public emergency summary created but private copy failed");
+    }
   }
 
   return { summaryId, publicUrl: payload.qrLink };

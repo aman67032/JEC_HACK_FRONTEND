@@ -4,6 +4,7 @@ import "./globals.css";
 import { StoreProvider } from "@/lib/store";
 import Image from "next/image";
 import AuthControls from "@/components/AuthControls";
+import EmergencyNavButton from "@/components/EmergencyNavButton";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -39,20 +40,20 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} ${poppins.variable} antialiased bg-background text-foreground`}
       >
-        <header className="sticky top-0 z-50 border-b border-[color:var(--color-border)] bg-[color:var(--background)]/85 backdrop-blur">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-            <a href="/" className="flex items-center gap-1">
-              <Image src="/logo.png" alt="HealthConnect logo" width={140} height={10} className="rounded-md" />
-            </a>
-            <div className="flex items-center gap-3">
-              <a href="/" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Home</a>
-              <a href="/dashboard" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Dashboard</a>
-              <AuthControls />
-              <a href="/dashboard#emergency" className="ml-3 inline-flex items-center justify-center rounded-full bg-[color:var(--color-accent)] px-5 py-2 text-lg font-bold tracking-wide text-white hover:bg-[color:var(--color-accent-hover)]">Emergency</a>
-            </div>
-          </nav>
-        </header>
         <StoreProvider>
+          <header className="sticky top-0 z-50 border-b border-[color:var(--color-border)] bg-[color:var(--background)]/85 backdrop-blur">
+            <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+              <a href="/" className="flex items-center gap-1">
+                <Image src="/logo.png" alt="HealthConnect logo" width={140} height={10} className="rounded-md" />
+              </a>
+              <div className="flex items-center gap-3">
+                <a href="/" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Home</a>
+                <a href="/dashboard" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Dashboard</a>
+                <AuthControls />
+                <EmergencyNavButton />
+              </div>
+            </nav>
+          </header>
           <main className="mx-auto min-h-[calc(100dvh-64px)] w-full max-w-6xl px-6 py-10">
             {children}
           </main>
