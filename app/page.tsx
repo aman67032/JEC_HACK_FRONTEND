@@ -1,9 +1,21 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { firebaseAuth } from "@/lib/firebaseClient";
 import Link from "next/link";
 import MedicineSchedule from "@/components/MedicineSchedule";
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(firebaseAuth(), (user) => {
+      setIsLoggedIn(!!user);
+    });
+    return () => unsub();
+  }, []);
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-16 py-8">
       {/* Hero Section */}
@@ -18,9 +30,11 @@ export default function Home() {
           Track medicines, get reminders, connect with doctors and family, and be ready for emergencies — all in one simple platform.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
-          <a href="/signup" className="btn-primary inline-flex items-center justify-center px-8 py-4 text-xl font-bold rounded-full shadow-lg hover:shadow-xl transition-all">
-            Get Started Free
-          </a>
+          {!isLoggedIn && (
+            <a href="/signup" className="btn-primary inline-flex items-center justify-center px-8 py-4 text-xl font-bold rounded-full shadow-lg hover:shadow-xl transition-all">
+              Get Started Free
+            </a>
+          )}
           <a href="/dashboard" className="btn-secondary inline-flex items-center justify-center px-8 py-4 text-xl font-bold rounded-full shadow-lg hover:shadow-xl transition-all">
             View Dashboard
           </a>
@@ -344,23 +358,25 @@ export default function Home() {
       </section>
 
       {/* Call to Action */}
-      <section className="card p-12 text-center bg-gradient-to-br from-[color:var(--color-accent)]/10 to-[color:var(--color-sage)]/10">
-        <h2 className="text-5xl font-bold mb-6">Ready to Get Started?</h2>
-        <p className="text-2xl text-[color:var(--color-muted)] mb-8 max-w-3xl mx-auto">
-          Join thousands of families using Health Connect to manage their medicines safely and stay connected with healthcare providers.
-        </p>
-        <div className="flex flex-wrap justify-center gap-6">
-          <a href="/signup" className="btn-primary inline-flex items-center justify-center px-10 py-5 text-2xl font-bold rounded-full shadow-xl hover:shadow-2xl transition-all">
-            Create Free Account
-          </a>
-          <a href="/login" className="btn-secondary inline-flex items-center justify-center px-10 py-5 text-2xl font-bold rounded-full shadow-xl hover:shadow-2xl transition-all">
-            Login to Your Account
-          </a>
-        </div>
-        <p className="mt-8 text-xl text-[color:var(--color-muted)]">
-          ✨ No credit card required • Free forever • Your data is always secure
-        </p>
-      </section>
+      {!isLoggedIn && (
+        <section className="card p-12 text-center bg-gradient-to-br from-[color:var(--color-accent)]/10 to-[color:var(--color-sage)]/10">
+          <h2 className="text-5xl font-bold mb-6">Ready to Get Started?</h2>
+          <p className="text-2xl text-[color:var(--color-muted)] mb-8 max-w-3xl mx-auto">
+            Join thousands of families using Health Connect to manage their medicines safely and stay connected with healthcare providers.
+          </p>
+          <div className="flex flex-wrap justify-center gap-6">
+            <a href="/signup" className="btn-primary inline-flex items-center justify-center px-10 py-5 text-2xl font-bold rounded-full shadow-xl hover:shadow-2xl transition-all">
+              Create Free Account
+            </a>
+            <a href="/login" className="btn-secondary inline-flex items-center justify-center px-10 py-5 text-2xl font-bold rounded-full shadow-xl hover:shadow-2xl transition-all">
+              Login to Your Account
+            </a>
+          </div>
+          <p className="mt-8 text-xl text-[color:var(--color-muted)]">
+            ✨ No credit card required • Free forever • Your data is always secure
+          </p>
+        </section>
+      )}
 
       {/* Footer Info */}
       <section className="text-center space-y-4">

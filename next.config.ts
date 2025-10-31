@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Pin Turbopack to this project root to avoid the multiple lockfiles issue
+  // Configure Turbopack root to avoid multiple lockfiles warning
   turbopack: {
     root: __dirname
   }
