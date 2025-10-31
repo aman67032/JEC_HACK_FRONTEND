@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isCaregiverOf(userData) {
+      return isSignedIn() && userData.caregivers != null && userData.caregivers.hasOnly([request.auth.uid]) == false && request.auth.uid in userData.caregivers;
+    }
+
+    // Users
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    // Medications
+    match /users/{userId}/medications/{medId} {
+      allow read, write: if isOwner(userId);
+      // caregivers can read
+      allow read: if resource.data == null && exists(/databases/$(database)/documents/users/$(userId))
+        && isCaregiverOf(get(/databases/$(database)/documents/users/$(userId)).data);
+    }
+
+    // Adherence Logs
+    match /users/{userId}/adherenceLogs/{logId} {
+      allow read, write: if isOwner(userId);
+      allow read: if exists(/databases/$(database)/documents/users/$(userId))
+        && isCaregiverOf(get(/databases/$(database)/documents/users/$(userId)).data);
+    }
+
+    // Dosage Change Logs (doctor write allowed via custom claims)
+    function hasDoctorClaim() { return isSignedIn() && request.auth.token.role == 'doctor'; }
+    match /users/{userId}/dosageChangeLogs/{changeId} {
+      allow read: if isOwner(userId) || (exists(/databases/$(database)/documents/users/$(userId)) && isCaregiverOf(get(/databases/$(database)/documents/users/$(userId)).data));
+      allow create: if isOwner(userId) || hasDoctorClaim();
+      allow update, delete: if isOwner(userId);
+    }
+
+    // Prescriptions (readable by doctor)
+    match /users/{userId}/prescriptions/{prescriptionId} {
+      allow read: if isOwner(userId) || hasDoctorClaim();
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Reminders
+    match /users/{userId}/reminders/{reminderId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Emergency summaries (public read via TTL token doc)
+    match /users/{userId}/emergencySummaries/{summaryId} {
+      allow read: if isOwner(userId);
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Public read via one-time token stored elsewhere (optional extension)
+    match /publicEmergency/{summaryId} {
+      allow read: if resource.data.expiresAt > request.time;
+      allow write: if false;
+    }
+
+    // Drug interaction cache (read-only public)
+    match /drugInteractions/{combinationId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Public share codes (for doctor/patient connections)
+    match /publicShareCodes/{shareCode} {
+      allow read: if isSignedIn();
+      // Allow create/update if patientId matches current user (setDoc with merge needs both)
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        (resource.exists && resource.data.patientId == request.auth.uid) ||
+        (!resource.exists && request.resource.data.patientId == request.auth.uid)
+      );
+      allow delete: if isSignedIn() && resource.data.patientId == request.auth.uid;
+    }
+  }
+}
+
+

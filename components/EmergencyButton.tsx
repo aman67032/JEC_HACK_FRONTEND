@@ -2,22 +2,28 @@
 
 import { useStore } from "@/lib/store";
 import { QRCodeSVG } from "qrcode.react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { createEmergencySummary } from "@/lib/emergency";
+import { firebaseAuth } from "@/lib/firebaseClient";
 
 export default function EmergencyButton() {
   const { state } = useStore();
   const [linkId, setLinkId] = useState<string | null>(null);
 
-  function generate() {
-    const id = `${Date.now()}`;
-    const summary = {
-      patient: state.profile,
-      medications: state.medications,
-      ts: new Date().toISOString(),
-      expiresAt: Date.now() + 30 * 60 * 1000
-    };
-    localStorage.setItem(`hc_emergency_${id}`, JSON.stringify(summary));
-    setLinkId(id);
+  async function generate() {
+    const user = firebaseAuth().currentUser;
+    const { profile, medications } = state;
+    const res = await createEmergencySummary({
+      userId: user?.uid,
+      patientName: profile.name,
+      age: profile.age,
+      conditions: profile.conditions,
+      allergies: profile.allergies,
+      currentMedications: medications.map((m) => ({ name: m.name, dosage: m.dosage, frequency: m.frequency })),
+      emergencyContact: undefined,
+      ttlMinutes: 30
+    });
+    setLinkId(res.summaryId);
   }
 
   return (

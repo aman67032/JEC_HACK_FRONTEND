@@ -1,17 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm, accessible theme (Theme A: Comfort & Warmth) */
-  --background: #FFF8E7; /* Cream */
-  --foreground: #3B2F2F; /* Dark Brown for readable contrast */
-  --muted-text: #5a4d4d; /* Softer dark text */
-  --surface: #FFFFFF; /* Cards */
-  --border: #E7DDD3; /* Warm light border */
-  --accent: #F88379; /* Coral for CTAs */
-  --accent-hover: #e36a60;
-  --sage: #A8C3A0; /* Calm accent */
-  --sage-hover: #97b490;
-  --sky: #78B7D0; /* Secondary */
+  /* Advanced color palette inspired by gradient and logo */
+  /* Gradient colors: Deep magenta → Lavender → Cream → Warm orange */
+  --background: #FFF8F0; /* Cream with warm tint */
+  --foreground: #2C1B1B; /* Deep rich brown for contrast */
+  --muted-text: #6B4E4E; /* Soft brown-gray */
+  --surface: #FFFFFF; /* Pure white cards */
+  --border: #E8D9D0; /* Warm light border */
+  
+  /* Logo warm tones - Red, Orange, Yellow, Golden-Orange */
+  --accent: #E85A4F; /* Warm red-orange */
+  --accent-hover: #D4473A;
+  --accent-secondary: #F5A623; /* Golden orange */
+  --accent-tertiary: #FFB84D; /* Light golden yellow */
+  
+  /* Logo green tones */
+  --sage: #7FB069; /* Olive green */
+  --sage-hover: #6A9A5A;
+  --sage-light: #A8D5BA; /* Light green */
+  
+  /* Gradient colors */
+  --magenta: #8B3A5C; /* Deep burgundy/magenta */
+  --lavender: #D4B5E8; /* Soft lavender pink */
+  --cream: #FFF8F0; /* Warm cream */
+  --warm-orange: #E8A87C; /* Muted warm orange */
+  
+  /* Advanced gradient combinations */
+  --gradient-primary: linear-gradient(135deg, #8B3A5C 0%, #D4B5E8 50%, #FFF8F0 100%);
+  --gradient-warm: linear-gradient(135deg, #E85A4F 0%, #F5A623 50%, #FFB84D 100%);
+  --gradient-soft: linear-gradient(135deg, #D4B5E8 0%, #FFF8F0 50%, #E8A87C 100%);
 }
 
 @theme inline {
@@ -22,52 +40,158 @@
   --color-muted: var(--muted-text);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-tertiary: var(--accent-tertiary);
   --color-sage: var(--sage);
   --color-sage-hover: var(--sage-hover);
-  --color-sky: var(--sky);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-sage-light: var(--sage-light);
+  --color-magenta: var(--magenta);
+  --color-lavender: var(--lavender);
+  --color-warm-orange: var(--warm-orange);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-playfair);
+  --font-heading: var(--font-poppins);
 }
 
-/* Optional dark mode tuned to warm low-glare */
+/* Advanced dark mode with gradient-inspired tones */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1d1a19;
-    --foreground: #f1e9e4;
-    --muted-text: #d9cec7;
-    --surface: #151312;
-    --border: #2a2624;
-    --accent: #FF8F86;
-    --accent-hover: #ff7a70;
-    --sage: #98b493;
-    --sage-hover: #87a582;
-    --sky: #7fc3db;
+    --background: #1A1518; /* Deep warm dark */
+    --foreground: #F5E9E0; /* Warm cream text */
+    --muted-text: #C9B8B0; /* Soft warm gray */
+    --surface: #241F22; /* Rich dark surface */
+    --border: #3A2F32; /* Warm dark border */
+    --accent: #FF6B5E; /* Bright warm red */
+    --accent-hover: #FF5547;
+    --accent-secondary: #FFB347; /* Warm gold */
+    --accent-tertiary: #FFD180; /* Light gold */
+    --sage: #8FB87F; /* Muted green */
+    --sage-hover: #7BA569;
+    --sage-light: #A8D5A5;
+    --magenta: #B85C7A; /* Lighter magenta for dark */
+    --lavender: #C49FD4; /* Softer lavender */
+    --warm-orange: #E6A380; /* Brighter orange */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 18px; /* Larger base for readability */
   line-height: 1.7;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Utility wrappers to align with theme */
+/* Beautiful typography hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: var(--gradient-warm);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--magenta);
+}
+
+h3 {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+/* Elegant display font for special headings */
+.display-font {
+  font-family: var(--font-playfair), serif;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+/* Advanced utility wrappers with gradients and shadows */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
 }
+
+.card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+/* Advanced button styles with gradients */
 .btn-primary {
-  background: var(--accent);
+  background: var(--gradient-warm);
   color: #fff;
   border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  box-shadow: 0 4px 14px 0 rgba(232, 90, 79, 0.3);
+  transition: all 0.3s ease;
 }
-.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #D4473A 0%, #E88A1A 50%, #FFA833 100%);
+  box-shadow: 0 6px 20px 0 rgba(232, 90, 79, 0.4);
+  transform: translateY(-2px);
+}
+
 .btn-secondary {
-  background: var(--sage);
+  background: linear-gradient(135deg, var(--sage) 0%, var(--sage-light) 100%);
   color: #16361c;
   border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  box-shadow: 0 4px 14px 0 rgba(127, 176, 105, 0.2);
+  transition: all 0.3s ease;
 }
-.btn-secondary:hover { background: var(--sage-hover); }
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, var(--sage-hover) 0%, var(--sage) 100%);
+  box-shadow: 0 6px 20px 0 rgba(127, 176, 105, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Gradient text effects */
+.gradient-text {
+  background: var(--gradient-warm);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-soft {
+  background: var(--gradient-soft);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Advanced gradient backgrounds */
+.gradient-bg-primary {
+  background: var(--gradient-primary);
+}
+
+.gradient-bg-warm {
+  background: var(--gradient-warm);
+}
+
+.gradient-bg-soft {
+  background: var(--gradient-soft);
+}

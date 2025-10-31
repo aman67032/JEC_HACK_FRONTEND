@@ -1,0 +1,62 @@
+type User @table {
+  authId: String!
+  role: String!
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  phoneNumber: String
+  photoUrl: String
+  bloodGroup: String
+  dateOfBirth: Date
+}
+
+type MedicalRecord @table {
+  patient: User!
+  type: String!
+  date: Date!
+  title: String
+  description: String
+  documentUrl: String
+  extractedData: String
+}
+
+type Medicine @table {
+  patient: User!
+  name: String!
+  dosage: String!
+  schedule: String!
+  startDate: Date!
+  prescribedByDoctor: User!
+  endDate: Date
+  notes: String
+  instructions: String
+  prescriptionUrl: String
+}
+
+type MedicationIntake @table {
+  medicine: Medicine!
+  patient: User!
+  scheduledTime: Timestamp!
+  status: String!
+  createdAt: Timestamp!
+  actualTakenTime: Timestamp
+  proofPhotoUrl: String
+  validationDetails: String
+  markedByCaretaker: User
+}
+
+type EmergencyContact @table {
+  patient: User!
+  name: String!
+  phoneNumber: String!
+  relationship: String!
+  isPrimary: Boolean
+}
+
+type CareRelationship @table {
+  patient: User!
+  relatedUser: User!
+  relationshipType: String!
+  status: String!
+  permissions: String
+}

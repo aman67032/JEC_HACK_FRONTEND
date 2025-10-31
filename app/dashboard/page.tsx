@@ -6,9 +6,11 @@ import AdherenceTracker from "@/components/AdherenceTracker";
 import EmergencyButton from "@/components/EmergencyButton";
 import HistoryReport from "@/components/HistoryReport";
 import InteractionChecker from "@/components/InteractionChecker";
+import RequireAuth from "@/components/RequireAuth";
 
 export default function DashboardPage() {
   return (
+    <RequireAuth>
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="col-span-1 grid gap-6 lg:col-span-2">
         <ProfileSection />
@@ -23,6 +25,7 @@ export default function DashboardPage() {
         <EmergencyButton />
       </div>
     </div>
+    </RequireAuth>
   );
 }
 

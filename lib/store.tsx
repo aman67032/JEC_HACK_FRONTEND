@@ -1,6 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { firebaseAuth, firestoreDb } from "@/lib/firebaseClient";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 export type Medication = {
   id: string;
@@ -66,8 +69,64 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setState(load());
   }, []);
 
+  // Load from Firestore if user is authenticated (replaces local state)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth(), (user) => {
+      if (!user) {
+        // User signed out, reset to default state
+        setState(defaultState);
+        return;
+      }
+      
+      // User signed in, load their data from Firestore
+      const db = firestoreDb();
+      (async () => {
+        try {
+          const userSnap = await getDoc(doc(db, "users", user.uid));
+          const medsSnap = await getDocs(collection(doc(db, "users", user.uid), "medications"));
+          
+          // Read profile data directly from user document (not nested in 'profile' field)
+          let profile = defaultState.profile;
+          if (userSnap.exists()) {
+            const userData = userSnap.data() as any;
+            profile = {
+              name: userData.name || defaultState.profile.name,
+              age: userData.age || defaultState.profile.age,
+              conditions: userData.conditions || defaultState.profile.conditions,
+              allergies: userData.allergies || defaultState.profile.allergies,
+            };
+          }
+          
+          const medications = medsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+          setState((prev) => ({ ...prev, profile, medications }));
+        } catch {}
+      })();
+    });
+    
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     save(state);
+    // Also persist to Firestore when signed in (simple upsert)
+    const user = firebaseAuth().currentUser;
+    if (!user) return;
+    const db = firestoreDb();
+    (async () => {
+      try {
+        // Save profile data directly to user document (not nested in 'profile' field)
+        await setDoc(doc(db, "users", user.uid), {
+          name: state.profile.name,
+          age: state.profile.age,
+          conditions: state.profile.conditions,
+          allergies: state.profile.allergies,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+        for (const m of state.medications) {
+          await setDoc(doc(collection(doc(db, "users", user.uid), "medications"), m.id), m, { merge: true });
+        }
+      } catch {}
+    })();
   }, [state]);
 
   const value = useMemo(() => ({ state, setState }), [state]);

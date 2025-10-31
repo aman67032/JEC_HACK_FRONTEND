@@ -1,17 +1,27 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Playfair_Display, Poppins } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/lib/store";
 import Image from "next/image";
+import AuthControls from "@/components/AuthControls";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${playfair.variable} ${poppins.variable} antialiased bg-background text-foreground`}
       >
         <header className="sticky top-0 z-50 border-b border-[color:var(--color-border)] bg-[color:var(--background)]/85 backdrop-blur">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
@@ -37,8 +47,7 @@ export default function RootLayout({
             <div className="flex items-center gap-3">
               <a href="/" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Home</a>
               <a href="/dashboard" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Dashboard</a>
-              <a href="/login" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Login</a>
-              <a href="/signup" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Sign Up</a>
+              <AuthControls />
               <a href="/dashboard#emergency" className="ml-3 inline-flex items-center justify-center rounded-full bg-[color:var(--color-accent)] px-5 py-2 text-lg font-bold tracking-wide text-white hover:bg-[color:var(--color-accent-hover)]">Emergency</a>
             </div>
           </nav>

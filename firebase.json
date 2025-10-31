@@ -1,0 +1,23 @@
+{
+  "firestore": {
+    "rules": "firebase/firestore.rules",
+    "indexes": "firebase/firestore.indexes.json"
+  },
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase/**.local",
+      "**/node_modules/**",
+      "**/.git/**"
+    ],
+    "frameworks": {
+      "source": ".",
+      "preview": {
+        "command": "npm run build"
+      }
+    }
+  },
+  "storage": {
+    "rules": "firebase/storage.rules"
+  }
+}

@@ -5,7 +5,7 @@ import { useStore } from "@/lib/store";
 
 async function getRxcuiForName(name: string): Promise<string | null> {
   try {
-    const resp = await fetch(`https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=${encodeURIComponent(name)}&maxEntries=1`);
+    const resp = await fetch(`/api/proxy/rxnav/approximateTerm?term=${encodeURIComponent(name)}&maxEntries=1`);
     const json = await resp.json();
     const cand = json.approximateGroup?.candidate?.[0]?.rxcui;
     return cand || null;
@@ -16,7 +16,7 @@ async function getRxcuiForName(name: string): Promise<string | null> {
 
 async function checkInteractions(rxcuis: string[]): Promise<string[]> {
   try {
-    const resp = await fetch(`https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${encodeURIComponent(rxcuis.join("+"))}`);
+    const resp = await fetch(`/api/proxy/rxnav/interaction/list?rxcuis=${encodeURIComponent(rxcuis.join("+"))}`);
     const json = await resp.json();
     const groups = json.fullInteractionTypeGroup || [];
     const warnings: string[] = [];
