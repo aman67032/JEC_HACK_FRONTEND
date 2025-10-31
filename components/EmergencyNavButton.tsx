@@ -40,7 +40,32 @@ export default function EmergencyNavButton() {
     let notifiedCount = 0;
     let errors: string[] = [];
 
+    // Get user location
+    let latitude: number | null = null;
+    let longitude: number | null = null;
+    try {
+      if (navigator.geolocation) {
+        await new Promise<void>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              latitude = position.coords.latitude;
+              longitude = position.coords.longitude;
+              resolve();
+            },
+            (error) => {
+              console.warn("Location access denied or failed:", error);
+              resolve(); // Continue without location
+            },
+            { timeout: 5000 }
+          );
+        });
+      }
+    } catch (error) {
+      console.warn("Failed to get location:", error);
+    }
+
     // 1. Generate emergency summary
+    let emergencyId: string | null = null;
     try {
       emergencyRes = await createEmergencySummary({
         userId: user.uid,
@@ -55,10 +80,30 @@ export default function EmergencyNavButton() {
         })),
         ttlMinutes: 30
       });
-      console.log("✅ Emergency summary created:", emergencyRes.summaryId);
+      emergencyId = emergencyRes.summaryId;
+      console.log("✅ Emergency summary created:", emergencyId);
     } catch (error: any) {
       console.error("Failed to create emergency summary:", error);
       errors.push(`Failed to create Smart Med Card: ${error.message || "Unknown error"}`);
+    }
+
+    // 1.5. Send location and trigger hospital finding
+    if (emergencyId) {
+      try {
+        await fetch("/api/emergency/location", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.uid,
+            emergencyId,
+            latitude,
+            longitude,
+          }),
+        });
+      } catch (error: any) {
+        console.error("Failed to process emergency location:", error);
+        errors.push(`Location processing failed: ${error.message}`);
+      }
     }
 
     // 2. Notify family members/caregivers (continue even if summary failed)

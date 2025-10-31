@@ -3,12 +3,15 @@
 import { useState } from "react";
 import Tesseract from "tesseract.js";
 import { useStore } from "@/lib/store";
+import { firebaseAuth, firebaseStorage } from "@/lib/firebaseClient";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function UploadSection() {
   const { state, setState } = useStore();
   const [files, setFiles] = useState<FileList | null>(null);
   const [extracted, setExtracted] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [useServerOCR, setUseServerOCR] = useState(true); // Default to server-side OCR
 
   function onSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const list = e.target.files;
@@ -18,6 +21,92 @@ export default function UploadSection() {
   async function runOCR() {
     if (!files || files.length === 0) return;
     setLoading(true);
+    
+    try {
+      if (useServerOCR) {
+        // Server-side OCR using Google Vision API
+        await runServerOCR();
+      } else {
+        // Client-side OCR using Tesseract.js
+        await runClientOCR();
+      }
+    } catch (error: any) {
+      console.error("OCR Error:", error);
+      alert(error.message || "OCR processing failed. Try client-side OCR.");
+      // Fallback to client-side OCR
+      if (useServerOCR) {
+        setUseServerOCR(false);
+        await runClientOCR();
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function runServerOCR() {
+    if (!files || files.length === 0) return;
+    
+    const user = firebaseAuth().currentUser;
+    if (!user) {
+      throw new Error("You must be logged in to use server-side OCR");
+    }
+
+    const results: string[] = [];
+    const medicines: Array<{ name: string; dosage: string; frequency?: string }> = [];
+
+    for (const file of Array.from(files)) {
+      // Upload to Firebase Storage
+      const timestamp = Date.now();
+      const fileName = `prescription_${timestamp}_${file.name}`;
+      const storageRef = ref(firebaseStorage(), `prescriptions/${user.uid}/${fileName}`);
+      
+      await uploadBytes(storageRef, file);
+      const imageUrl = await getDownloadURL(storageRef);
+
+      // Call server-side OCR API
+      const response = await fetch("/api/prescription/ocr", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl,
+          userId: user.uid,
+          prescriptionId: `pres_${timestamp}`,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Server OCR failed");
+      }
+
+      const data = await response.json();
+      if (data.extractedText) {
+        results.push(data.extractedText);
+      }
+      if (data.medicines && data.medicines.length > 0) {
+        medicines.push(...data.medicines);
+      }
+    }
+
+    // Use extracted medicines from API, or fallback to parsing extracted text
+    if (medicines.length > 0) {
+      const medNames = medicines.map(m => `${m.name} - ${m.dosage}${m.frequency ? ` - ${m.frequency}` : ""}`);
+      setExtracted(medNames);
+    } else {
+      // Parse from extracted text as fallback
+      const meds = results
+        .join("\n")
+        .split(/\n|,|;/)
+        .map((s) => s.trim())
+        .filter((s) => /[a-zA-Z].*\d+mg|\d+\s*mg|ml|tablets?/i.test(s));
+      setExtracted(meds.slice(0, 10));
+    }
+  }
+
+  async function runClientOCR() {
+    if (!files || files.length === 0) return;
     const results: string[] = [];
     for (const file of Array.from(files)) {
       const image = URL.createObjectURL(file);
@@ -30,7 +119,6 @@ export default function UploadSection() {
       .map((s) => s.trim())
       .filter((s) => /[a-zA-Z].*\d+mg|\d+\s*mg|ml|tablets?/i.test(s));
     setExtracted(meds.slice(0, 10));
-    setLoading(false);
   }
 
   function confirmToMeds() {
@@ -75,7 +163,7 @@ export default function UploadSection() {
             className="flex-1 rounded-lg border-2 border-[color:var(--color-border)] bg-white px-4 py-3 text-base font-semibold dark:border-zinc-800 dark:bg-zinc-950 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors" 
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button 
             type="button" 
             onClick={runOCR} 
@@ -84,6 +172,15 @@ export default function UploadSection() {
           >
             {loading ? "🔄 Processing..." : "📷 Run OCR"}
           </button>
+          <label className="flex items-center gap-2 text-sm text-[color:var(--color-muted)] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={useServerOCR}
+              onChange={(e) => setUseServerOCR(e.target.checked)}
+              className="rounded"
+            />
+            <span>Use server OCR (Google Vision)</span>
+          </label>
           {files && (
             <span className="text-base font-semibold text-[color:var(--color-muted)]">
               {files.length} file(s) selected
