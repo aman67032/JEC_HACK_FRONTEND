@@ -46,9 +46,11 @@ export async function POST(request: NextRequest) {
       const userDoc = await db.collection("users").doc(patientId).get();
       if (userDoc.exists) {
         const userData = userDoc.data();
-        profile.name = userData?.name || "";
-        profile.age = userData?.age || "";
-        profile.allergies = userData?.allergies || [];
+        if (profile) {
+          profile.name = userData?.name || "";
+          profile.age = userData?.age || "";
+          profile.allergies = userData?.allergies || [];
+        }
       }
     }
 

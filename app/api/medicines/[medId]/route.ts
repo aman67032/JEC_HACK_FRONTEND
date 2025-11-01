@@ -4,13 +4,13 @@ import { FieldValue } from "firebase-admin/firestore";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { medId: string } }
+  { params }: { params: Promise<{ medId: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
     const uid = await getUserIdFromToken(authHeader);
     const body = await request.json();
-    const { medId } = params;
+    const { medId } = await params;
 
     const db = getFirestoreAdmin();
     const medRef = db
@@ -51,12 +51,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { medId: string } }
+  { params }: { params: Promise<{ medId: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
     const uid = await getUserIdFromToken(authHeader);
-    const { medId } = params;
+    const { medId } = await params;
 
     const db = getFirestoreAdmin();
     const medRef = db
