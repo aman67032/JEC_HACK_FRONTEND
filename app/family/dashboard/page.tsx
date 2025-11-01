@@ -4,10 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { firebaseAuth, firestoreDb } from "@/lib/firebaseClient";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, collection, getDoc, getDocs, query, where } from "firebase/firestore";
 import RequireAuth from "@/components/RequireAuth";
 import EmergencyButton from "@/components/EmergencyButton";
 import { useAuthClaims } from "@/lib/auth";
+import FamilyPatientSelector from "@/components/FamilyPatientSelector";
+import FamilyMedicineNotifications from "@/components/FamilyMedicineNotifications";
+import FamilyWeeklyReport from "@/components/FamilyWeeklyReport";
+import FamilySmartMedCard from "@/components/FamilySmartMedCard";
+import ChatBot from "@/components/chatbot/ChatBot";
 
 interface ConnectedPatient {
   patientId: string;
@@ -19,6 +23,7 @@ interface ConnectedPatient {
   conditions?: string[];
   allergies?: string[];
   connectedAt?: string;
+  photoUrl?: string;
 }
 
 export default function FamilyDashboardPage() {
@@ -29,6 +34,8 @@ export default function FamilyDashboardPage() {
   const [connectedPatients, setConnectedPatients] = useState<ConnectedPatient[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [familyName, setFamilyName] = useState("");
+  const [familyId, setFamilyId] = useState<string | null>(null);
+  const [selectedPatientName, setSelectedPatientName] = useState<string>("");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(firebaseAuth(), async (user) => {
@@ -37,54 +44,26 @@ export default function FamilyDashboardPage() {
         return;
       }
 
-      try {
-        // Get family member's info
-        const familyDoc = await getDoc(doc(firestoreDb(), "users", user.uid));
-        if (familyDoc.exists()) {
-          const familyData = familyDoc.data();
-          setFamilyName(familyData.name || user.displayName || "Family Member");
-          
-          // Find patients where this family member is in their caregivers array
-          const db = firestoreDb();
-          const usersRef = collection(db, "users");
-          const familyQuery = query(usersRef, where("caregivers", "array-contains", user.uid));
-          const snapshot = await getDocs(familyQuery);
-          
-          const patients: ConnectedPatient[] = [];
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.role === "patient") {
-              patients.push({
-                patientId: doc.id,
-                name: data.name || "Unknown",
-                email: data.email,
-                age: data.age,
-                gender: data.gender,
-                shareCode: data.shareCode,
-                conditions: data.conditions || [],
-                allergies: data.allergies || [],
-                connectedAt: data.connectedAt,
-              });
-            }
-          });
-          
-          setConnectedPatients(patients);
-          
-          // Auto-select first patient if available
-          if (patients.length > 0 && !selectedPatientId) {
-            setSelectedPatientId(patients[0].patientId);
-          }
-        }
-      } catch (e: any) {
-        console.error("Error loading family dashboard:", e);
-        setError(e?.message || "Failed to load dashboard");
-      } finally {
-        setLoading(false);
-      }
+      setFamilyId(user.uid);
+      setLoading(false);
     });
 
     return () => unsub();
-  }, [selectedPatientId]);
+  }, []);
+
+  const handlePatientsLoaded = (patients: ConnectedPatient[]) => {
+    setConnectedPatients(patients);
+    if (patients.length > 0 && !selectedPatientId) {
+      setSelectedPatientId(patients[0].patientId);
+      setSelectedPatientName(patients[0].name);
+    }
+  };
+
+  const handlePatientSelect = (patientId: string) => {
+    setSelectedPatientId(patientId);
+    const patient = connectedPatients.find((p) => p.patientId === patientId);
+    setSelectedPatientName(patient?.name || "Patient");
+  };
 
   async function connectPatient() {
     const connectCode = prompt("Enter patient share code to connect:");
