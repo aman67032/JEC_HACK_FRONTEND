@@ -11,12 +11,14 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+  adjustFontFallback: false,
 });
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   display: "swap",
+  adjustFontFallback: false,
 });
 
 const poppins = Poppins({
@@ -24,6 +26,7 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
