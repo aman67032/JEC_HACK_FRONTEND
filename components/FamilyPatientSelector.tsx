@@ -88,8 +88,13 @@ export default function FamilyPatientSelector({
   if (patients.length === 0) {
     return (
       <div className="rounded-2xl border border-gray-200 p-6 bg-white text-center">
-        <p className="text-gray-600 mb-2">No patients connected yet</p>
-        <p className="text-sm text-gray-400">Ask patients to share their connection code with you</p>
+        <p className="text-gray-600 mb-2 font-semibold">No patients connected yet</p>
+        <p className="text-sm text-gray-500 mb-4">Click the "Connect New Patient" button above to add a patient using their share code</p>
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-xs text-blue-700">
+            💡 <strong>How to connect:</strong> Ask the patient for their share code, then click "Connect New Patient" and enter the code when prompted.
+          </p>
+        </div>
       </div>
     );
   }

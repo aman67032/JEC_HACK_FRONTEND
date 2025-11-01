@@ -94,7 +94,7 @@ export default function FamilyDashboardPage() {
       <RequireAuth>
         <div className="mx-auto w-full max-w-6xl">
           <div className="rounded-2xl border border-zinc-200 p-8 text-center text-[color:var(--color-muted)] dark:border-zinc-800">
-            Loading family dashboard...
+            Loading family and caretaker dashboard...
           </div>
         </div>
       </RequireAuth>
@@ -106,7 +106,7 @@ export default function FamilyDashboardPage() {
       <div className="mx-auto w-full max-w-6xl space-y-6">
         {/* Family Dashboard Header */}
         <div className="rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950">
-          <h1 className="mb-2 text-3xl font-bold">👨‍👩‍👧‍👦 Family Caregiver Dashboard</h1>
+          <h1 className="mb-2 text-3xl font-bold">👨‍👩‍👧‍👦 Family and Caretaker Dashboard</h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Welcome, {familyName}! Monitor and help manage medications for your connected patients.
           </p>
@@ -121,19 +121,30 @@ export default function FamilyDashboardPage() {
         {familyId && (
           <>
             {/* Patient Selector */}
-            <FamilyPatientSelector
-              familyId={familyId}
-              selectedPatientId={selectedPatientId}
-              onPatientSelect={handlePatientSelect}
-              onPatientsLoaded={handlePatientsLoaded}
-            />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Connected Patients ({connectedPatients.length})</h2>
+                <button
+                  onClick={connectPatient}
+                  className="rounded-lg border border-blue-500 bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
+                >
+                  + Connect New Patient
+                </button>
+              </div>
+              <FamilyPatientSelector
+                familyId={familyId}
+                selectedPatientId={selectedPatientId}
+                onPatientSelect={handlePatientSelect}
+                onPatientsLoaded={handlePatientsLoaded}
+              />
+            </div>
 
             {selectedPatientId && (
               <>
                 {/* Alert Banner */}
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                   <p className="text-sm font-semibold text-red-900">
-                    👨‍👩‍👧‍👦 Family Caregiver View - Monitoring {selectedPatientName}
+                    👨‍👩‍👧‍👦 Family and Caretaker View - Monitoring {selectedPatientName}
                   </p>
                   <p className="mt-1 text-xs text-red-800">
                     You will receive real-time notifications when {selectedPatientName} takes medicines or if wrong medicine is detected.
