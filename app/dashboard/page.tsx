@@ -16,6 +16,7 @@ import InteractionChecker from "@/components/InteractionChecker";
 import QuickActions from "@/components/QuickActions";
 import RequireAuth from "@/components/RequireAuth";
 import MedicineSchedule from "@/components/MedicineSchedule";
+import ChatBot from "@/components/chatbot/ChatBot";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -142,6 +143,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        <ChatBot />
       </div>
     </RequireAuth>
   );

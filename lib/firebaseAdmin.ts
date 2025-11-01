@@ -113,4 +113,14 @@ export function getFirestoreAdmin() {
   return admin.firestore(getAdminApp());
 }
 
+export function getStorageAdmin() {
+  return admin.storage(getAdminApp());
+}
+
+export function getStorageBucket() {
+  const app = getAdminApp();
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT;
+  const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`;
+  return admin.storage(app).bucket(storageBucket);
+}
 
