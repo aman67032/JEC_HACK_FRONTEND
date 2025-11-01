@@ -8,13 +8,15 @@
     "ignore": [
       "firebase/**.local",
       "**/node_modules/**",
-      "**/.git/**"
+      "**/.git/**",
+      "**/.next/**"
     ],
     "frameworks": {
       "source": ".",
       "preview": {
         "command": "npm run build"
-      }
+      },
+      "buildOutput": ".next"
     }
   },
   "storage": {

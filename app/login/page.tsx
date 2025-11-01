@@ -46,6 +46,8 @@ export default function LoginPage() {
           router.push("/doctor/dashboard");
         } else if (userRole === "family") {
           router.push("/family/dashboard");
+        } else if (userRole === "business" || userRole === "vendor" || userRole === "pharmacy") {
+          router.push("/business/dashboard");
         } else {
           router.push("/dashboard");
         }
@@ -92,6 +94,8 @@ export default function LoginPage() {
         router.push("/doctor/dashboard");
       } else if (userRole === "family") {
         router.push("/family/dashboard");
+      } else if (userRole === "business" || userRole === "vendor" || userRole === "pharmacy") {
+        router.push("/business/dashboard");
       } else {
         router.push("/dashboard");
       }
@@ -110,7 +114,22 @@ export default function LoginPage() {
       </p>
       
       {/* Role Selection Boxes */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <button
+          onClick={() => setSelectedRole("patient")}
+          className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
+            selectedRole === "patient"
+              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
+              : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+          }`}
+        >
+          <div className={`mb-2 text-2xl ${selectedRole === "patient" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+            🏥
+          </div>
+          <span className={`text-sm font-semibold ${selectedRole === "patient" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
+            Patient
+          </span>
+        </button>
         <button
           onClick={() => setSelectedRole("doctor")}
           className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
@@ -142,18 +161,18 @@ export default function LoginPage() {
           </span>
         </button>
         <button
-          onClick={() => setSelectedRole("patient")}
+          onClick={() => setSelectedRole("business")}
           className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
-            selectedRole === "patient"
-              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
+            selectedRole === "business"
+              ? "border-purple-500 bg-purple-50 dark:border-purple-400 dark:bg-purple-950"
               : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
           }`}
         >
-          <div className={`mb-2 text-2xl ${selectedRole === "patient" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
-            🏥
+          <div className={`mb-2 text-2xl ${selectedRole === "business" ? "text-purple-600 dark:text-purple-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+            🏪
           </div>
-          <span className={`text-sm font-semibold ${selectedRole === "patient" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
-            Patient
+          <span className={`text-sm font-semibold ${selectedRole === "business" ? "text-purple-700 dark:text-purple-300" : "text-zinc-700 dark:text-zinc-300"}`}>
+            Business
           </span>
         </button>
       </div>

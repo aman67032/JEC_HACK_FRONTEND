@@ -38,6 +38,8 @@ export default function SignupPage() {
         router.push("/doctor/dashboard");
       } else if (role === "family") {
         router.push("/family/dashboard");
+      } else if (role === "business" || role === "vendor" || role === "pharmacy") {
+        router.push("/business/dashboard");
       } else {
         router.push("/dashboard");
       }
@@ -79,6 +81,8 @@ export default function SignupPage() {
         router.push("/doctor/dashboard");
       } else if (selectedRole === "family") {
         router.push("/family/dashboard");
+      } else if (selectedRole === "business" || selectedRole === "vendor" || selectedRole === "pharmacy") {
+        router.push("/business/dashboard");
       } else {
         router.push("/dashboard");
       }
@@ -97,7 +101,22 @@ export default function SignupPage() {
       </p>
       
       {/* Role Selection Boxes */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <button
+          onClick={() => setRole("patient")}
+          className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
+            role === "patient"
+              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
+              : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+          }`}
+        >
+          <div className={`mb-2 text-2xl ${role === "patient" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+            🏥
+          </div>
+          <span className={`text-sm font-semibold ${role === "patient" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
+            Patient
+          </span>
+        </button>
         <button
           onClick={() => setRole("doctor")}
           className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
@@ -129,18 +148,18 @@ export default function SignupPage() {
           </span>
         </button>
         <button
-          onClick={() => setRole("patient")}
+          onClick={() => setRole("business")}
           className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
-            role === "patient"
-              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
+            role === "business"
+              ? "border-purple-500 bg-purple-50 dark:border-purple-400 dark:bg-purple-950"
               : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
           }`}
         >
-          <div className={`mb-2 text-2xl ${role === "patient" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
-            🏥
+          <div className={`mb-2 text-2xl ${role === "business" ? "text-purple-600 dark:text-purple-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+            🏪
           </div>
-          <span className={`text-sm font-semibold ${role === "patient" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
-            Patient
+          <span className={`text-sm font-semibold ${role === "business" ? "text-purple-700 dark:text-purple-300" : "text-zinc-700 dark:text-zinc-300"}`}>
+            Business
           </span>
         </button>
       </div>
