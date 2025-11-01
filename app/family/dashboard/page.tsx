@@ -118,121 +118,54 @@ export default function FamilyDashboardPage() {
           </div>
         )}
 
-        {connectedPatients.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-200 p-8 text-center dark:border-zinc-800">
-            <p className="mb-2 text-lg font-semibold">No Patients Connected</p>
-            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-              Ask your family member to share their Patient ID (share code) with you, then connect using the button below.
-            </p>
-            <button
-              onClick={connectPatient}
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              Connect to Patient
-            </button>
-          </div>
-        ) : (
+        {familyId && (
           <>
             {/* Patient Selector */}
-            <div className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
-              <div className="mb-3 flex items-center justify-between">
-                <label className="text-sm font-semibold">Select Patient to View:</label>
-                <button
-                  onClick={connectPatient}
-                  className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
-                >
-                  + Connect New Patient
-                </button>
-              </div>
-              <select
-                value={selectedPatientId || ""}
-                onChange={(e) => setSelectedPatientId(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                {connectedPatients.map((patient) => (
-                  <option key={patient.patientId} value={patient.patientId}>
-                    {patient.name} {patient.age ? `(${patient.age} years old)` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Alerts Banner for Family Members */}
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
-              <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-                ⚠️ Family Member View
-              </p>
-              <p className="mt-1 text-xs text-amber-800 dark:text-amber-200">
-                You are viewing {selectedPatientId ? connectedPatients.find(p => p.patientId === selectedPatientId)?.name || "patient" : "a patient"}'s information. 
-                You can help manage medications and track adherence.
-              </p>
-            </div>
+            <FamilyPatientSelector
+              familyId={familyId}
+              selectedPatientId={selectedPatientId}
+              onPatientSelect={handlePatientSelect}
+              onPatientsLoaded={handlePatientsLoaded}
+            />
 
             {selectedPatientId && (
               <>
-                {/* Patient Info Card */}
-                <div className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
-                  <h2 className="mb-2 text-lg font-semibold">
-                    Viewing: {connectedPatients.find(p => p.patientId === selectedPatientId)?.name || "Patient"}
-                  </h2>
-                  {connectedPatients.find(p => p.patientId === selectedPatientId) && (
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      <p>Patient ID: {connectedPatients.find(p => p.patientId === selectedPatientId)?.shareCode || selectedPatientId.slice(0, 8).toUpperCase()}</p>
-                      {connectedPatients.find(p => p.patientId === selectedPatientId)?.age && (
-                        <p>Age: {connectedPatients.find(p => p.patientId === selectedPatientId)?.age} years</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Note: Components need to be updated to support patientId prop for multi-patient view */}
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
-                  <p className="text-sm text-blue-900 dark:text-blue-100">
-                    💡 Note: Currently viewing basic patient information. Full dashboard features for family members will be available soon.
+                {/* Alert Banner */}
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                  <p className="text-sm font-semibold text-red-900">
+                    👨‍👩‍👧‍👦 Family Caregiver View - Monitoring {selectedPatientName}
+                  </p>
+                  <p className="mt-1 text-xs text-red-800">
+                    You will receive real-time notifications when {selectedPatientName} takes medicines or if wrong medicine is detected.
                   </p>
                 </div>
 
-                {/* Placeholder for patient-specific views */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                  <div className="col-span-1 grid gap-6 lg:col-span-2">
-                    <div className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
-                      <h3 className="mb-4 text-lg font-semibold">Patient Profile</h3>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        View and manage patient profile information.
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
-                      <h3 className="mb-4 text-lg font-semibold">Medicine List</h3>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        View all medications for this patient.
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
-                      <h3 className="mb-4 text-lg font-semibold">Medicine Schedule</h3>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Track medication schedule and adherence.
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
-                      <h3 className="mb-4 text-lg font-semibold">Reminders</h3>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Medication reminders and alerts for this patient.
-                      </p>
-                    </div>
+                {/* Main Dashboard Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left Column - Main Content */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Medicine Intake Notifications */}
+                    <FamilyMedicineNotifications
+                      patientId={selectedPatientId}
+                      patientName={selectedPatientName}
+                    />
+
+                    {/* Weekly Report */}
+                    <FamilyWeeklyReport
+                      patientId={selectedPatientId}
+                      patientName={selectedPatientName}
+                    />
                   </div>
-                  <div className="col-span-1 grid gap-6">
-                    <div className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
-                      <h3 className="mb-4 text-lg font-semibold">Adherence Tracker</h3>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        View adherence statistics for this patient.
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
-                      <h3 className="mb-4 text-lg font-semibold">History Report</h3>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        View medication history and reports.
-                      </p>
-                    </div>
+
+                  {/* Right Column - Sidebar */}
+                  <div className="space-y-6">
+                    {/* Smart Med Card */}
+                    <FamilySmartMedCard
+                      patientId={selectedPatientId}
+                      patientName={selectedPatientName}
+                    />
+
+                    {/* Emergency Button */}
                     <EmergencyButton />
                   </div>
                 </div>
@@ -240,6 +173,9 @@ export default function FamilyDashboardPage() {
             )}
           </>
         )}
+        
+        {/* Chatbot */}
+        <ChatBot />
       </div>
     </RequireAuth>
   );

@@ -167,7 +167,7 @@ export default function FamilyMedicineNotifications({
                     </span>
                   </div>
                   <p className="text-xs opacity-90 mb-2">
-                    {event.status === "taken" && verified
+                    {event.status === "taken" && event.verified
                       ? `✅ Verified: ${patientName} took the correct medicine`
                       : event.status === "wrong_medicine"
                       ? `⚠️ WRONG MEDICINE: ${event.validationDetails || "Medicine mismatch detected"}`

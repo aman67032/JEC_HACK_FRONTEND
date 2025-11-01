@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const expiresInMinutes = body.expires_in_minutes || 60;
+    const patientId = body.patient_id || uid; // Support family members generating for patients
     const token = randomBytes(16).toString("hex");
 
     const expiresAt = new Date();
@@ -17,20 +18,44 @@ export async function POST(request: NextRequest) {
 
     const db = getFirestoreAdmin();
 
+    // Check if user is family member trying to generate for patient
+    if (patientId !== uid) {
+      const patientDoc = await db.collection("users").doc(patientId).get();
+      if (!patientDoc.exists) {
+        return NextResponse.json({ error: "Patient not found" }, { status: 404 });
+      }
+      const patientData = patientDoc.data();
+      const caregivers = patientData?.caregivers || [];
+      if (!caregivers.includes(uid)) {
+        return NextResponse.json({ error: "You don't have permission to generate med card for this patient" }, { status: 403 });
+      }
+    }
+
     // Fetch user profile
     const profileDoc = await db
       .collection("users")
-      .doc(uid)
+      .doc(patientId)
       .collection("profile")
       .doc("meta")
       .get();
 
     const profile = profileDoc.exists ? profileDoc.data() : {};
 
+    // If profile not found in subcollection, try main user doc
+    if (!profileDoc.exists) {
+      const userDoc = await db.collection("users").doc(patientId).get();
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        profile.name = userData?.name || "";
+        profile.age = userData?.age || "";
+        profile.allergies = userData?.allergies || [];
+      }
+    }
+
     // Fetch medicines
     const medsSnapshot = await db
       .collection("users")
-      .doc(uid)
+      .doc(patientId)
       .collection("medicines")
       .limit(10)
       .get();
@@ -45,7 +70,8 @@ export async function POST(request: NextRequest) {
 
     // Save med card
     await db.collection("medcards").doc(token).set({
-      owner: uid,
+      owner: patientId,
+      generatedBy: uid, // Track who generated it (patient or family member)
       profile: {
         name: profile?.name || "",
         age: profile?.age || "",
