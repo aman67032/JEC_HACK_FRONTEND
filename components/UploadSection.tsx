@@ -171,68 +171,77 @@ export default function UploadSection() {
   }
 
   return (
-    <section id="upload" className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Upload: Prescription & Pharmacy Bill</h2>
-      </div>
-      <div className="grid gap-3">
-        <div className="flex items-center gap-3">
-          <input 
-            type="file" 
-            multiple 
-            accept="image/*,.pdf" 
-            onChange={(e) => {
-              onSelect(e);
-              if (e.target.files && e.target.files.length > 0) {
-                // Use setTimeout to avoid blocking the UI thread
-                setTimeout(() => {
-                  runOCR().catch((error) => {
-                    console.error("Failed to run OCR:", error);
-                    setLoading(false);
-                  });
-                }, 0);
-              }
-            }} 
-            className="flex-1 rounded-lg border-2 border-[color:var(--color-border)] bg-white px-4 py-3 text-base font-semibold dark:border-zinc-800 dark:bg-zinc-950 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors" 
-          />
+    <section id="upload" className="rounded-3xl border-4 border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 p-8 shadow-2xl dark:border-blue-600 dark:from-blue-950 dark:to-blue-900">
+      <div className="mb-6">
+        <div className="text-center mb-4">
+          <div className="text-6xl mb-3">📷</div>
+          <h2 className="text-3xl font-bold mb-2 text-blue-900 dark:text-blue-100">Upload Prescription</h2>
+          <p className="text-xl text-blue-700 dark:text-blue-200">Take a photo or upload PDF to add medicines automatically</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+      </div>
+      <div className="grid gap-6">
+        <div className="flex items-center gap-4">
+          <label className="flex-1 rounded-2xl border-4 border-blue-500 bg-white px-8 py-6 text-2xl font-bold text-blue-900 cursor-pointer hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all text-center dark:bg-zinc-800 dark:border-blue-600 dark:text-blue-100">
+            📁 Choose Photo or PDF
+            <input 
+              type="file" 
+              multiple 
+              accept="image/*,.pdf" 
+              onChange={(e) => {
+                onSelect(e);
+                if (e.target.files && e.target.files.length > 0) {
+                  // Use setTimeout to avoid blocking the UI thread
+                  setTimeout(() => {
+                    runOCR().catch((error) => {
+                      console.error("Failed to run OCR:", error);
+                      setLoading(false);
+                    });
+                  }, 0);
+                }
+              }} 
+              className="hidden" 
+            />
+          </label>
+        </div>
+        <div className="flex items-center gap-4 flex-wrap">
           <button 
             type="button" 
             onClick={runOCR} 
             disabled={loading || !files || files.length === 0} 
-            className="btn-primary px-6 py-3 text-base font-bold rounded-full disabled:opacity-60 shadow-lg hover:shadow-xl transition-all"
+            className="px-8 py-5 text-2xl font-bold rounded-2xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 shadow-lg hover:shadow-xl transition-all dark:bg-blue-700 dark:hover:bg-blue-800"
           >
             {loading ? "🔄 Processing..." : "📷 Run OCR"}
           </button>
-          <label className="flex items-center gap-2 text-sm text-[color:var(--color-muted)] cursor-pointer">
+          <label className="flex items-center gap-3 text-xl text-blue-800 dark:text-blue-200 cursor-pointer">
             <input
               type="checkbox"
               checked={useServerOCR}
               onChange={(e) => setUseServerOCR(e.target.checked)}
-              className="rounded"
+              className="w-6 h-6 rounded"
             />
             <span>Use server OCR (Google Vision)</span>
           </label>
           {files && (
-            <span className="text-base font-semibold text-[color:var(--color-muted)]">
-              {files.length} file(s) selected
+            <span className="text-2xl font-bold text-blue-800 dark:text-blue-200">
+              ✅ {files.length} file(s) selected
             </span>
           )}
         </div>
         {extracted.length > 0 && (
-          <div className="rounded-lg border border-zinc-200 p-3 text-sm dark:border-zinc-800">
-            <div className="mb-2 font-medium">Extracted (review & confirm)</div>
-            <ul className="grid gap-1">
+          <div className="rounded-2xl border-4 border-green-300 bg-gradient-to-br from-green-50 to-green-100 p-6 dark:border-green-600 dark:from-green-950 dark:to-green-900">
+            <div className="mb-4 text-2xl font-bold text-green-900 dark:text-green-100">✅ Extracted Medicines (Review & Confirm)</div>
+            <ul className="grid gap-3 mb-4">
               {extracted.map((t, i) => (
-                <li key={i} className="flex items-center justify-between gap-2">
-                  <span>{t}</span>
-                  <button className="rounded-full border border-zinc-300 px-2 py-1 text-[10px] hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900">Edit</button>
+                <li key={i} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white dark:bg-zinc-800">
+                  <span className="text-xl text-green-900 dark:text-green-100">{t}</span>
+                  <button className="rounded-xl border-2 border-green-400 px-4 py-2 text-base font-bold text-green-800 hover:bg-green-100 dark:border-green-600 dark:text-green-200 dark:hover:bg-green-900">Edit</button>
                 </li>
               ))}
             </ul>
-            <div className="mt-3 flex justify-end">
-              <button onClick={confirmToMeds} className="btn-secondary px-4 py-2 text-sm font-semibold">Confirm to list</button>
+            <div className="flex justify-end">
+              <button onClick={confirmToMeds} className="px-8 py-4 text-2xl font-bold rounded-2xl bg-green-600 text-white hover:bg-green-700 shadow-lg hover:shadow-xl transition-all dark:bg-green-700 dark:hover:bg-green-800">
+                ✅ Confirm & Add to List
+              </button>
             </div>
           </div>
         )}

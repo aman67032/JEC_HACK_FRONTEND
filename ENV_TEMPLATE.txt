@@ -1,0 +1,33 @@
+# Copy this template to your .env.local file and fill in your Firebase values
+
+# ============================================
+# FIREBASE CONFIGURATION (REQUIRED)
+# ============================================
+# Get these from: https://console.firebase.google.com/project/health-connect-d256d/settings/general
+# Scroll to "Your apps" section → Click on your web app → Copy from the config object
+
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyD6Q8kqJyB8RroIi5ags3WqzvkkhQSVk1k
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=health-connect-d256d.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=health-connect-d256d
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=health-connect-d256d.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=581962389987
+NEXT_PUBLIC_FIREBASE_APP_ID=1:581962389987:web:27d6e37acfe457d136e8d6
+
+# ============================================
+# ADMIN SECRET (REQUIRED)
+# ============================================
+# Generate a random secret for admin operations
+ADMIN_API_SECRET=3cf09bf9961e5e21daa7e07cbbda211ced13a24366253dba40f1fcc9cc0f0f89
+
+# ============================================
+# OPTIONAL (Only if you need server-side Firebase operations)
+# ============================================
+# Get from: https://console.firebase.google.com/project/health-connect-d256d/settings/serviceaccounts/adminsdk
+# Download the JSON key file and paste the entire content here as a string
+# FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"health-connect-d256d",...}
+
+# ============================================
+# API SETTINGS (Optional - for CORS/origin restrictions)
+# ============================================
+API_ALLOWED_ORIGINS=http://localhost:3000,https://jec-hack-frontend.vercel.app
+

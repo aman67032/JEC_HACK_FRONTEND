@@ -20,11 +20,71 @@ export default function Home() {
   const handlePhotoCapture = (file: File) => {
     console.log("Photo captured:", file);
     setCameraOpen(false);
-    alert("📷 Photo captured! You can upload prescriptions from the dashboard.");
+    // Redirect to dashboard with upload section focused
+    window.location.href = "/dashboard#upload";
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-16 py-8">
+    <div className="mx-auto w-full max-w-6xl space-y-8 py-8">
+      {/* Elderly-Friendly Quick Access Boxes */}
+      {isLoggedIn && (
+        <section className="grid gap-6 md:grid-cols-2 mb-12">
+          {/* Box 1: Camera/OCR Upload */}
+          <div className="rounded-3xl border-4 border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 p-8 shadow-2xl hover:shadow-3xl transition-all dark:from-blue-950 dark:to-blue-900 dark:border-blue-600">
+            <div className="text-center mb-6">
+              <div className="text-7xl mb-4">📷</div>
+              <h2 className="text-4xl font-bold mb-2 text-blue-900 dark:text-blue-100">Scan Prescription</h2>
+              <p className="text-xl text-blue-700 dark:text-blue-200">Take a photo to add medicines automatically</p>
+            </div>
+            <div className="space-y-4">
+              <button
+                onClick={() => setCameraOpen(true)}
+                className="w-full rounded-2xl bg-blue-600 px-8 py-6 text-3xl font-bold text-white hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all dark:bg-blue-700 dark:hover:bg-blue-800"
+              >
+                📸 Open Camera
+              </button>
+              <label className="block w-full rounded-2xl bg-white border-4 border-blue-300 px-8 py-6 text-2xl font-bold text-blue-900 cursor-pointer hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all text-center dark:bg-zinc-800 dark:border-blue-600 dark:text-blue-100">
+                📁 Choose Photo
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handlePhotoCapture(file);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Box 2: Emergency/Quick Actions */}
+          <div className="rounded-3xl border-4 border-red-400 bg-gradient-to-br from-red-50 to-red-100 p-8 shadow-2xl hover:shadow-3xl transition-all dark:from-red-950 dark:to-red-900 dark:border-red-600">
+            <div className="text-center mb-6">
+              <div className="text-7xl mb-4">🚨</div>
+              <h2 className="text-4xl font-bold mb-2 text-red-900 dark:text-red-100">Emergency Help</h2>
+              <p className="text-xl text-red-700 dark:text-red-200">Get help instantly when you need it</p>
+            </div>
+            <div className="space-y-4">
+              <a
+                href="/dashboard#emergency"
+                className="block w-full rounded-2xl bg-red-600 px-8 py-6 text-3xl font-bold text-white hover:bg-red-700 shadow-lg hover:shadow-xl transition-all text-center dark:bg-red-700 dark:hover:bg-red-800"
+              >
+                🆘 Emergency Button
+              </a>
+              <a
+                href="/dashboard"
+                className="block w-full rounded-2xl bg-white border-4 border-red-300 px-8 py-6 text-2xl font-bold text-red-900 hover:bg-red-50 shadow-lg hover:shadow-xl transition-all text-center dark:bg-zinc-800 dark:border-red-600 dark:text-red-100"
+              >
+                📊 Go to Dashboard
+              </a>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Hero Section */}
       <section className="flex flex-col gap-8 text-center">
         <span className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-[color:var(--color-border)] bg-white/90 px-4 py-2 text-xl font-semibold text-[color:var(--color-muted)] mx-auto">

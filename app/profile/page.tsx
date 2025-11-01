@@ -137,12 +137,12 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="grid gap-2">
-              <label className="text-sm">Doctor share code</label>
+              <label className="text-sm font-medium">Patient ID</label>
               <div className="flex items-center gap-2">
-                <input readOnly value={shareCode || "(not generated)"} className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-900" />
+                <input readOnly value={shareCode || "(not generated)"} className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-mono font-semibold dark:border-zinc-800 dark:bg-zinc-900" />
                 <button type="button" onClick={generateShareCode} className="rounded-lg border px-3 py-2 text-sm">{shareCode ? "Regenerate" : "Generate"}</button>
               </div>
-              <p className="text-xs text-[color:var(--color-muted)]">Share this code with your doctor so they can connect to your profile.</p>
+              <p className="text-xs text-[color:var(--color-muted)]">Your unique Patient ID. Share this code with your doctor so they can connect to your profile.</p>
             </div>
             {error && <div className="rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">{error}</div>}
             <div className="flex justify-end">

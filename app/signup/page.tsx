@@ -32,7 +32,15 @@ export default function SignupPage() {
         conditions: [],
         allergies: [],
       }, { merge: true });
-      router.push("/dashboard");
+      
+      // Redirect based on role
+      if (role === "doctor") {
+        router.push("/doctor/dashboard");
+      } else if (role === "family") {
+        router.push("/family/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (e: any) {
       setError(e?.message || "Signup failed");
     } finally {
@@ -51,12 +59,14 @@ export default function SignupPage() {
       // Check if user document exists, create if not
       const db = firestoreDb();
       const userDoc = await getDoc(doc(db, "users", user.uid));
+      const selectedRole = role || "patient";
+      
       if (!userDoc.exists()) {
         await setDoc(doc(db, "users", user.uid), {
           userId: user.uid,
           name: user.displayName || "",
           email: user.email || "",
-          role: role || "patient",
+          role: selectedRole,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           conditions: [],
@@ -64,7 +74,14 @@ export default function SignupPage() {
         }, { merge: true });
       }
 
-      router.push("/dashboard");
+      // Redirect based on role
+      if (selectedRole === "doctor") {
+        router.push("/doctor/dashboard");
+      } else if (selectedRole === "family") {
+        router.push("/family/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (e: any) {
       setError(e?.message || "Google sign-up failed");
     } finally {
@@ -78,6 +95,56 @@ export default function SignupPage() {
       <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
         Choose your role to get a tailored experience.
       </p>
+      
+      {/* Role Selection Boxes */}
+      <div className="mb-6 grid grid-cols-3 gap-4">
+        <button
+          onClick={() => setRole("doctor")}
+          className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
+            role === "doctor"
+              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
+              : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+          }`}
+        >
+          <div className={`mb-2 text-2xl ${role === "doctor" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+            👨‍⚕️
+          </div>
+          <span className={`text-sm font-semibold ${role === "doctor" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
+            Doctor
+          </span>
+        </button>
+        <button
+          onClick={() => setRole("family")}
+          className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
+            role === "family"
+              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
+              : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+          }`}
+        >
+          <div className={`mb-2 text-2xl ${role === "family" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+            👨‍👩‍👧‍👦
+          </div>
+          <span className={`text-sm font-semibold ${role === "family" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
+            Family
+          </span>
+        </button>
+        <button
+          onClick={() => setRole("patient")}
+          className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
+            role === "patient"
+              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
+              : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+          }`}
+        >
+          <div className={`mb-2 text-2xl ${role === "patient" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+            🏥
+          </div>
+          <span className={`text-sm font-semibold ${role === "patient" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
+            Patient
+          </span>
+        </button>
+      </div>
+
       <div className="grid gap-4">
         <div className="grid gap-2">
           <label htmlFor="name" className="text-sm font-medium">Name</label>
@@ -90,14 +157,6 @@ export default function SignupPage() {
         <div className="grid gap-2">
           <label htmlFor="password" className="text-sm font-medium">Password</label>
           <input id="password" value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="••••••••" className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-800 dark:bg-zinc-950" />
-        </div>
-        <div className="grid gap-2">
-          <label htmlFor="role" className="text-sm font-medium">Role</label>
-          <select id="role" value={role} onChange={(e) => setRole(e.target.value)} className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-950">
-            <option value="patient">Patient</option>
-            <option value="caregiver">Family Member / Caregiver</option>
-            <option value="doctor">Doctor (read-only)</option>
-          </select>
         </div>
         {error && <div className="rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">{error}</div>}
         <button onClick={onSignup} disabled={loading} className="mt-2 inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-60 dark:bg-zinc-100 dark:text-black">

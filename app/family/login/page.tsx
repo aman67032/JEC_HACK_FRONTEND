@@ -6,13 +6,12 @@ import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function FamilyLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   async function onLogin() {
     setError(null);
@@ -26,31 +25,31 @@ export default function LoginPage() {
         return;
       }
       
-      // If a role was selected, update the user document
-      if (selectedRole) {
-        const db = firestoreDb();
-        await setDoc(doc(db, "users", user.uid), {
-          role: selectedRole,
-          updatedAt: new Date().toISOString(),
-        }, { merge: true });
-      }
-      
-      // Check user role and redirect accordingly
+      // Ensure user role is set to family
       const db = firestoreDb();
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        const userRole = selectedRole || userData.role || "patient";
-        
-        if (userRole === "doctor") {
-          router.push("/doctor/dashboard");
-        } else if (userRole === "family") {
-          router.push("/family/dashboard");
-        } else {
-          router.push("/dashboard");
+        // Update role to family if not already set
+        if (userData.role !== "family") {
+          await setDoc(doc(db, "users", user.uid), {
+            role: "family",
+            updatedAt: new Date().toISOString(),
+          }, { merge: true });
         }
+        // Redirect to family dashboard
+        router.push("/family/dashboard");
       } else {
-        router.push("/dashboard");
+        // Create user document with family role
+        await setDoc(doc(db, "users", user.uid), {
+          userId: user.uid,
+          name: user.displayName || "",
+          email: user.email || "",
+          role: "family",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+        router.push("/family/dashboard");
       }
     } catch (e: any) {
       setError(e?.message || "Login failed");
@@ -70,31 +69,25 @@ export default function LoginPage() {
       // Check if user document exists, create if not
       const db = firestoreDb();
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      let userRole = "patient";
       
       if (!userDoc.exists()) {
         await setDoc(doc(db, "users", user.uid), {
           userId: user.uid,
           name: user.displayName || "",
           email: user.email || "",
-          role: "patient",
+          role: "family",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          conditions: [],
-          allergies: [],
         }, { merge: true });
       } else {
-        userRole = userDoc.data().role || "patient";
+        // Update role to family
+        await setDoc(doc(db, "users", user.uid), {
+          role: "family",
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
       }
 
-      // Redirect based on role
-      if (userRole === "doctor") {
-        router.push("/doctor/dashboard");
-      } else if (userRole === "family") {
-        router.push("/family/dashboard");
-      } else {
-        router.push("/dashboard");
-      }
+      router.push("/family/dashboard");
     } catch (e: any) {
       setError(e?.message || "Google sign-in failed");
     } finally {
@@ -104,60 +97,14 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto w-full max-w-md">
-      <h1 className="mb-2 text-2xl font-semibold">Login</h1>
-      <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
-        Access your HealthConnect dashboard.
-      </p>
-      
-      {/* Role Selection Boxes */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
-        <button
-          onClick={() => setSelectedRole("doctor")}
-          className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
-            selectedRole === "doctor"
-              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
-              : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
-          }`}
-        >
-          <div className={`mb-2 text-2xl ${selectedRole === "doctor" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
-            👨‍⚕️
-          </div>
-          <span className={`text-sm font-semibold ${selectedRole === "doctor" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
-            Doctor
-          </span>
-        </button>
-        <button
-          onClick={() => setSelectedRole("family")}
-          className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
-            selectedRole === "family"
-              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
-              : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
-          }`}
-        >
-          <div className={`mb-2 text-2xl ${selectedRole === "family" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
-            👨‍👩‍👧‍👦
-          </div>
-          <span className={`text-sm font-semibold ${selectedRole === "family" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
-            Family
-          </span>
-        </button>
-        <button
-          onClick={() => setSelectedRole("patient")}
-          className={`flex flex-col items-center justify-center rounded-lg border-2 p-4 transition-all hover:scale-105 ${
-            selectedRole === "patient"
-              ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950"
-              : "border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
-          }`}
-        >
-          <div className={`mb-2 text-2xl ${selectedRole === "patient" ? "text-blue-600 dark:text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}>
-            🏥
-          </div>
-          <span className={`text-sm font-semibold ${selectedRole === "patient" ? "text-blue-700 dark:text-blue-300" : "text-zinc-700 dark:text-zinc-300"}`}>
-            Patient
-          </span>
-        </button>
+      <div className="mb-6 text-center">
+        <div className="mb-4 text-6xl">👨‍👩‍👧‍👦</div>
+        <h1 className="mb-2 text-2xl font-semibold">Family Member Login</h1>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Access your family dashboard to monitor and help manage medications for your loved ones.
+        </p>
       </div>
-
+      
       <div className="grid gap-4">
         <div className="grid gap-2">
           <label htmlFor="email" className="text-sm font-medium">Email</label>
@@ -189,8 +136,9 @@ export default function LoginPage() {
           {loading ? "Signing in..." : "Continue with Google"}
         </button>
       </div>
-      <p className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">
-        New here? <a href="/signup" className="underline">Create an account</a>
+      <p className="mt-4 text-center text-xs text-zinc-600 dark:text-zinc-400">
+        New family member? <a href="/signup" className="underline">Create an account</a> or{" "}
+        <a href="/login" className="underline">Login as Patient/Doctor</a>
       </p>
     </div>
   );
