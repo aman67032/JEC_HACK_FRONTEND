@@ -1,6 +1,17 @@
 {
   "status": "commited",
-  "type": "frontend",
+  "type": "backend",
   "scope": "codebase",
-  "localEndpoint": "http://localhost:3000"
+  "localEndpoint": "http://localhost:3000",
+  "backendAuthType": "public",
+  "executionArgs": {
+    "projectName": "JEC_FRONTEND",
+    "projectPath": "C:\\Users\\MSI1\\Downloads\\JEC\\JEC_FRONTEND",
+    "testIds": [],
+    "additionalInstruction": "",
+    "envs": {
+      "API_KEY": "sk-user-VSGmO1ZsIRsNVccDIpRC1Yq7nBC06Wl8NefS2lQAba1Ulj6v7v1vO-z_PYfN9D7yiuJG2zXqrj41iHuds_narzwhfx2RIQiZr0tD77tDlXlKGhHWC8QcgrTH5djY1vt7FgQ"
+    }
+  },
+  "proxy": "http://b8bc33b1-5ef3-4a77-afb6-4b0aac347404:DqgmaG26clkQ02U1xZ6gmXAibFVqBbta@tun.testsprite.com:8080"
 }

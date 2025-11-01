@@ -60,7 +60,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const db = getFirestoreAdmin();
+    let db;
+    try {
+      db = getFirestoreAdmin();
+    } catch (firebaseError: any) {
+      return new Response(
+        JSON.stringify({ 
+          ok: false, 
+          error: "Firebase service unavailable",
+          message: firebaseError?.message || "Could not initialize Firebase Admin. Please configure FIREBASE_SERVICE_ACCOUNT."
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     // Create verification submission document
     const verificationData = {
@@ -97,6 +109,19 @@ export async function POST(req: NextRequest) {
     );
   } catch (e: any) {
     console.error("Doctor verification error:", e);
+    
+    // Handle Firebase errors
+    if (e?.message?.includes("Could not load") || e?.message?.includes("FIREBASE_SERVICE_ACCOUNT")) {
+      return new Response(
+        JSON.stringify({ 
+          ok: false, 
+          error: "Firebase Admin not initialized. Please configure FIREBASE_SERVICE_ACCOUNT environment variable.",
+          hint: "See: https://console.firebase.google.com/project/health-connect-d256d/settings/serviceaccounts/adminsdk"
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ ok: false, error: e?.message || "Failed to submit verification" }),
       { status: 500, headers: { "Content-Type": "application/json" } }

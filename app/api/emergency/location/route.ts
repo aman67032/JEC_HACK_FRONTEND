@@ -18,8 +18,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const db = getFirestoreAdmin();
-    const userDoc = await db.collection("users").doc(userId).get();
+    let db;
+    try {
+      db = getFirestoreAdmin();
+    } catch (firebaseError: any) {
+      return NextResponse.json(
+        { 
+          error: "Firebase service unavailable",
+          message: firebaseError?.message || "Could not initialize Firebase Admin. Please configure FIREBASE_SERVICE_ACCOUNT."
+        },
+        { status: 500 }
+      );
+    }
+
+    let userDoc;
+    try {
+      userDoc = await db.collection("users").doc(userId).get();
+    } catch (firestoreError: any) {
+      const { handleFirebaseError } = await import("@/lib/firebaseHelpers");
+      const errorResponse = handleFirebaseError(firestoreError);
+      return NextResponse.json(
+        { error: errorResponse.message },
+        { status: errorResponse.status }
+      );
+    }
+
     if (!userDoc.exists) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

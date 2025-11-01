@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFirestoreAdmin } from "@/lib/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
+import { handleFirebaseError } from "@/lib/firebaseHelpers";
 
 /**
  * Register FCM token for push notifications
@@ -18,7 +19,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const db = getFirestoreAdmin();
+    let db;
+    try {
+      db = getFirestoreAdmin();
+    } catch (firebaseError: any) {
+      return NextResponse.json(
+        { 
+          error: "Firebase service unavailable",
+          message: firebaseError?.message || "Could not initialize Firebase Admin. Please configure FIREBASE_SERVICE_ACCOUNT."
+        },
+        { status: 500 }
+      );
+    }
+
     const userRef = db.collection("users").doc(userId);
 
     // Add token to user's fcmTokens array (avoid duplicates)
@@ -48,9 +61,10 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("FCM token registration error:", error);
+    const errorResponse = handleFirebaseError(error);
     return NextResponse.json(
-      { error: error.message || "Failed to register FCM token" },
-      { status: 500 }
+      { error: errorResponse.message },
+      { status: errorResponse.status }
     );
   }
 }

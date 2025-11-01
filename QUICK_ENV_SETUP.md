@@ -106,3 +106,4 @@ After restarting, your app should load without the Firebase configuration error.
 See the detailed guide: `FIREBASE_SETUP_GUIDE.md`
 
 
+

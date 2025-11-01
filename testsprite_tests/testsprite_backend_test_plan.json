@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "adminsetdoctorrolewithvalidandinvalidadminsecret",
+    "description": "Test the /api/admin/setDoctor endpoint with valid and invalid x-admin-secret headers to verify role assignment and removal for users. Validate responses for missing userId, unauthorized access, and successful role updates."
+  },
+  {
+    "id": "TC002",
+    "title": "doctorconnecttopatientwithvalidandinvalidsharecode",
+    "description": "Test the /api/doctor/connect endpoint with valid and invalid shareCode values using a bearer token with doctor role. Verify successful connection, missing shareCode handling, unauthorized access, forbidden access without doctor role, and invalid share code responses."
+  },
+  {
+    "id": "TC003",
+    "title": "doctorverificationwithrequiredfieldsandauthentication",
+    "description": "Test the /api/doctor/verify endpoint by submitting doctor verification credentials with and without bearer token authentication. Validate required fields hospitalName, degreeName, degreeInstitution, and licenseNumber. Check for successful submission, unauthorized access, and bad request errors."
+  },
+  {
+    "id": "TC004",
+    "title": "familyconnecttopatientwithvalidandinvalidsharecode",
+    "description": "Test the /api/family/connect endpoint with valid and invalid shareCode values using a bearer token with family role. Verify successful connection, missing shareCode handling, unauthorized access, forbidden access without family role, and invalid share code responses."
+  },
+  {
+    "id": "TC005",
+    "title": "medicineregisterwithrequiredfieldsandimageurl",
+    "description": "Test the /api/medicine/register endpoint by registering medicine with valid imageUrl, medicine_name, and user_id. Validate missing required fields and successful registration responses."
+  },
+  {
+    "id": "TC006",
+    "title": "medicineverifywithrequiredfieldsandoptionalmedicineid",
+    "description": "Test the /api/medicine/verify endpoint by verifying patient medicine photo with required imageUrl and user_id, and optional medicine_id. Validate missing required fields and successful verification responses including match status."
+  },
+  {
+    "id": "TC007",
+    "title": "emergencylocationhandlerwithrequiredfieldsandoptionalcoordinates",
+    "description": "Test the /api/emergency/location endpoint by submitting emergency alerts with required userId and emergencyId, and optional latitude and longitude. Validate user existence, successful processing with nearest hospital and ambulance contact, and error handling for missing fields and user not found."
+  },
+  {
+    "id": "TC008",
+    "title": "fcmpushnotificationswithrequiredfieldsandoptionaldata",
+    "description": "Test the /api/notifications/fcm endpoint by sending push notifications with required userId, type, title, and message, and optional data object. Validate missing required fields, user existence, successful notification sending, and error handling."
+  },
+  {
+    "id": "TC009",
+    "title": "fcmtokenregistrationwithrequiredfields",
+    "description": "Test the /api/notifications/register-token endpoint by registering FCM tokens with required userId and fcmToken. Validate missing required fields, successful token registration, and error handling."
+  },
+  {
+    "id": "TC010",
+    "title": "prescriptionocrwithrequiredfieldsandoptionalprescriptionid",
+    "description": "Test the /api/prescription/ocr endpoint by processing prescription images with required imageUrl and userId, and optional prescriptionId. Validate missing required fields, successful extraction and addition of medicines, and error handling."
+  }
+]

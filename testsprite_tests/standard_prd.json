@@ -1,0 +1,254 @@
+{
+  "project_name": "JEC Health Connect Frontend",
+  "project_description": "A healthcare management application with medicine verification, emergency alerts, doctor-patient connections, and medication reminder system",
+  "version": "1.0.0",
+  "backend_apis": [
+    {
+      "name": "Admin Set Doctor Role",
+      "endpoint": "/api/admin/setDoctor",
+      "method": "POST",
+      "description": "Set or remove doctor role for a user. Requires admin secret header.",
+      "authentication": "x-admin-secret header",
+      "request_body": {
+        "userId": "string (required)",
+        "makeDoctor": "boolean (optional)"
+      },
+      "expected_responses": {
+        "200": "Success - Role updated",
+        "401": "Unauthorized - Invalid admin secret",
+        "400": "Bad Request - Missing userId",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "Doctor Connect to Patient",
+      "endpoint": "/api/doctor/connect",
+      "method": "POST",
+      "description": "Connect doctor to patient via share code",
+      "authentication": "Bearer token with doctor role",
+      "request_body": {
+        "shareCode": "string (required)"
+      },
+      "expected_responses": {
+        "200": "Success - Connected to patient",
+        "401": "Unauthorized",
+        "403": "Forbidden - Doctor role required",
+        "404": "Invalid share code",
+        "400": "Bad Request - Missing shareCode",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "Doctor Verification",
+      "endpoint": "/api/doctor/verify",
+      "method": "POST",
+      "description": "Submit doctor verification credentials for admin review",
+      "authentication": "Bearer token (optional, can use userId in body)",
+      "request_body": {
+        "userId": "string (optional if in token)",
+        "hospitalName": "string (required)",
+        "hospitalAddress": "string (optional)",
+        "degreeName": "string (required)",
+        "degreeInstitution": "string (required)",
+        "licenseNumber": "string (required)",
+        "specialization": "string (optional)",
+        "degreeFileUrl": "string (optional)",
+        "licenseFileUrl": "string (optional)"
+      },
+      "expected_responses": {
+        "200": "Success - Verification submitted",
+        "401": "Unauthorized",
+        "400": "Bad Request - Missing required fields",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "Family Connect to Patient",
+      "endpoint": "/api/family/connect",
+      "method": "POST",
+      "description": "Connect family member/caregiver to patient via share code",
+      "authentication": "Bearer token with family role",
+      "request_body": {
+        "shareCode": "string (required)"
+      },
+      "expected_responses": {
+        "200": "Success - Connected to patient",
+        "401": "Unauthorized",
+        "403": "Forbidden - Family role required",
+        "404": "Invalid share code",
+        "400": "Bad Request - Missing shareCode",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "Medicine Register",
+      "endpoint": "/api/medicine/register",
+      "method": "POST",
+      "description": "Register medicine with photo using OCR",
+      "authentication": "None (public)",
+      "request_body": {
+        "imageUrl": "string (required) - Firebase Storage URL",
+        "medicine_name": "string (required)",
+        "user_id": "string (required)",
+        "dosage": "string (optional)"
+      },
+      "expected_responses": {
+        "200": "Success - Medicine registered",
+        "400": "Bad Request - Missing required fields",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "Medicine Verify",
+      "endpoint": "/api/medicine/verify",
+      "method": "POST",
+      "description": "Verify patient medicine photo against registered medicines",
+      "authentication": "None (public)",
+      "request_body": {
+        "imageUrl": "string (required) - Firebase Storage URL",
+        "user_id": "string (required)",
+        "medicine_id": "string (optional)"
+      },
+      "expected_responses": {
+        "200": "Success - Verification result with match status",
+        "400": "Bad Request - Missing required fields",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "Emergency Location Handler",
+      "endpoint": "/api/emergency/location",
+      "method": "POST",
+      "description": "Process emergency alert with location, find nearest hospital, contact ambulance",
+      "authentication": "None (public)",
+      "request_body": {
+        "userId": "string (required)",
+        "emergencyId": "string (required)",
+        "latitude": "number (optional)",
+        "longitude": "number (optional)"
+      },
+      "expected_responses": {
+        "200": "Success - Emergency processed with hospital and contact info",
+        "400": "Bad Request - Missing required fields",
+        "404": "User not found",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "FCM Push Notifications",
+      "endpoint": "/api/notifications/fcm",
+      "method": "POST",
+      "description": "Send FCM push notification to user",
+      "authentication": "None (public)",
+      "request_body": {
+        "userId": "string (required)",
+        "type": "string (required) - notification type",
+        "title": "string (required)",
+        "message": "string (required)",
+        "data": "object (optional)"
+      },
+      "expected_responses": {
+        "200": "Success - Notification sent",
+        "400": "Bad Request - Missing required fields",
+        "404": "User not found",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "FCM Token Registration",
+      "endpoint": "/api/notifications/register-token",
+      "method": "POST",
+      "description": "Register FCM token for push notifications",
+      "authentication": "None (public)",
+      "request_body": {
+        "userId": "string (required)",
+        "fcmToken": "string (required)"
+      },
+      "expected_responses": {
+        "200": "Success - Token registered",
+        "400": "Bad Request - Missing required fields",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "Prescription OCR",
+      "endpoint": "/api/prescription/ocr",
+      "method": "POST",
+      "description": "Process prescription image with OCR to extract medicines",
+      "authentication": "None (public)",
+      "request_body": {
+        "imageUrl": "string (required) - Firebase Storage URL",
+        "userId": "string (required)",
+        "prescriptionId": "string (optional)"
+      },
+      "expected_responses": {
+        "200": "Success - Medicines extracted and added",
+        "400": "Bad Request - Missing required fields",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "Reminder Monitor",
+      "endpoint": "/api/reminders/monitor",
+      "method": "POST",
+      "description": "Monitor medication reminders and trigger alerts",
+      "authentication": "None (public)",
+      "request_body": {},
+      "expected_responses": {
+        "200": "Success - Reminders processed",
+        "500": "Internal Server Error"
+      }
+    },
+    {
+      "name": "RxNav API Proxy",
+      "endpoint": "/api/proxy/rxnav/{path}",
+      "method": "GET",
+      "description": "Proxy requests to RxNav REST API for drug information",
+      "authentication": "None (public)",
+      "request_body": {},
+      "expected_responses": {
+        "200": "Success - RxNav API response",
+        "500": "Proxy error"
+      }
+    }
+  ],
+  "tech_stack": [
+    "Next.js",
+    "TypeScript",
+    "Firebase",
+    "Firestore",
+    "Firebase Authentication",
+    "Firebase Admin SDK",
+    "Python Flask",
+    "Google Vision API",
+    "RxNav API",
+    "Firebase Cloud Messaging"
+  ],
+  "test_requirements": {
+    "authentication": [
+      "Test with valid admin secret",
+      "Test with invalid admin secret",
+      "Test with Bearer tokens for doctor/family roles",
+      "Test with missing authentication"
+    ],
+    "validation": [
+      "Test required fields validation",
+      "Test invalid data types",
+      "Test missing parameters"
+    ],
+    "error_handling": [
+      "Test 400 Bad Request responses",
+      "Test 401 Unauthorized responses",
+      "Test 403 Forbidden responses",
+      "Test 404 Not Found responses",
+      "Test 500 Internal Server Error handling"
+    ],
+    "success_paths": [
+      "Test successful API calls with valid data",
+      "Test response structure and data correctness",
+      "Test Firestore database updates",
+      "Test notification sending"
+    ]
+  }
+}
+

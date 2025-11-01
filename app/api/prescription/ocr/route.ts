@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFirestoreAdmin } from "@/lib/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
+import { validateUrlField, validateStringField } from "@/lib/validation";
 
 /**
  * Cloud Function equivalent: Process prescription upload with Google Vision API OCR
@@ -11,9 +12,19 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { imageUrl, userId, prescriptionId } = body;
 
-    if (!imageUrl || !userId) {
+    // Validate required fields with type checking
+    const imageUrlValidation = validateUrlField(imageUrl, "imageUrl");
+    if (!imageUrlValidation.valid) {
       return NextResponse.json(
-        { error: "Missing required fields: imageUrl, userId" },
+        { error: imageUrlValidation.error || "Invalid imageUrl" },
+        { status: 400 }
+      );
+    }
+
+    const userIdValidation = validateStringField(userId, "userId");
+    if (!userIdValidation.valid) {
+      return NextResponse.json(
+        { error: userIdValidation.error || "Invalid userId" },
         { status: 400 }
       );
     }

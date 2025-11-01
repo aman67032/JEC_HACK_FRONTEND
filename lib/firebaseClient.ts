@@ -44,20 +44,28 @@ export function getFirebaseApp(): FirebaseApp {
   if (!getApps().length) {
     const config = getFirebaseConfig();
     app = initializeApp(config);
-    
-    // Initialize Analytics (only in browser environment)
-    if (typeof window !== 'undefined') {
-      isSupported().then((supported) => {
-        if (supported) {
-          analytics = getAnalytics(app);
-        }
-      }).catch(() => {
-        // Analytics not supported or failed to initialize
-        console.log("Firebase Analytics not available");
-      });
-    }
   }
   return app as FirebaseApp;
+}
+
+// Initialize Analytics separately (only in browser, after app is initialized)
+export function initializeAnalytics() {
+  if (typeof window === 'undefined' || analytics) return analytics;
+  
+  try {
+    isSupported().then((supported) => {
+      if (supported && !analytics) {
+        analytics = getAnalytics(getFirebaseApp());
+      }
+    }).catch(() => {
+      // Analytics not supported or failed to initialize
+      console.log("Firebase Analytics not available");
+    });
+  } catch (error) {
+    console.log("Firebase Analytics initialization error:", error);
+  }
+  
+  return analytics;
 }
 
 export const firebaseAuth = () => getAuth(getFirebaseApp());
