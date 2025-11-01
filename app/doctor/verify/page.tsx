@@ -169,13 +169,13 @@ export default function DoctorVerifyPage() {
         { merge: true }
       );
 
-      // Success - redirect to main page after a short delay
+      // Success - redirect to doctor dashboard after a short delay
       setSuccess("Information saved successfully! Redirecting to dashboard...");
       setVerificationStatus("submitted");
       
-      // Redirect to dashboard after 1.5 seconds
+      // Redirect to doctor dashboard after 1.5 seconds
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/doctor/dashboard");
       }, 1500);
     } catch (e: any) {
       setError(e?.message || "Failed to save verification");

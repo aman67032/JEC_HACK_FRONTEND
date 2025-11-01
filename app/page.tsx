@@ -2,13 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { firebaseAuth } from "@/lib/firebaseClient";
+import { firebaseAuth, firebaseStorage, firestoreDb } from "@/lib/firebaseClient";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import CameraDialog from "@/components/CameraDialog";
+import Tesseract from "tesseract.js";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(firebaseAuth(), (user) => {
@@ -17,11 +22,159 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-  const handlePhotoCapture = (file: File) => {
+  const handlePhotoCapture = async (file: File) => {
     console.log("Photo captured:", file);
     setCameraOpen(false);
-    // Redirect to dashboard with upload section focused
+    
+    // Check if user is logged in
+    const user = firebaseAuth().currentUser;
+    if (!user) {
+      alert("Please log in to upload prescriptions.");
+      window.location.href = "/login";
+      return;
+    }
+
+    // Process file directly using the same logic as UploadSection
+    try {
+      // Check if file is an image (not PDF)
+      const isImage = file.type.startsWith("image/");
+      const isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      
+      if (isPDF) {
+        alert("PDF files require server-side OCR. Redirecting to dashboard...");
+        window.location.href = "/dashboard#upload";
+        return;
+      }
+
+      if (!isImage) {
+        alert(`Unsupported file type: ${file.type}. Redirecting to dashboard...`);
+        window.location.href = "/dashboard#upload";
+        return;
+      }
+
+      // Set processing state (non-blocking UI)
+      setProcessing(true);
+      setProcessingProgress(0);
+      
+      // Upload file to Firebase Storage
+      const timestamp = Date.now();
+      const fileName = `prescription_${timestamp}_${file.name}`;
+      const storageRef = ref(firebaseStorage(), `prescriptions/${user.uid}/${fileName}`);
+      
+      setProcessingProgress(20);
+      await uploadBytes(storageRef, file);
+      const imageUrl = await getDownloadURL(storageRef);
+
+      // Run client-side OCR
+      let extractedText = "";
+      const allMedicines: Array<{ name: string; dosage: string; frequency?: string }> = [];
+      
+      try {
+        // Use FileReader to create a data URL that Tesseract can read reliably
+        const fileReader = new FileReader();
+        
+        setProcessingProgress(30);
+        const imageUrlForOCR = await new Promise<string>((resolve, reject) => {
+          fileReader.onload = (e) => {
+            if (e.target?.result && typeof e.target.result === "string") {
+              resolve(e.target.result);
+            } else {
+              reject(new Error("Failed to read file"));
+            }
+          };
+          fileReader.onerror = () => reject(new Error("Failed to read file"));
+          fileReader.readAsDataURL(file);
+        });
+
+        // Run OCR with data URL
+        setProcessingProgress(40);
+        const { data } = await Tesseract.recognize(imageUrlForOCR, "eng", {
+          logger: (m) => {
+            if (m.status === "recognizing text") {
+              const progress = Math.round(40 + (m.progress * 50)); // 40-90%
+              setProcessingProgress(progress);
+              console.log(`OCR progress: ${Math.round(m.progress * 100)}%`);
+            }
+          },
+        });
+        extractedText = data.text;
+        setProcessingProgress(90);
+
+        // Parse medicines from extracted text
+        if (extractedText) {
+          const lines = extractedText.split("\n").filter(line => line.trim());
+          for (const line of lines) {
+            const medMatch = line.match(/([A-Za-z\s]+?)\s*[-–—]?\s*(\d+\s*(?:mg|ml|tablets?)?)\s*[-–—]?\s*([\d\/day\s]+)?/i);
+            if (medMatch) {
+              allMedicines.push({
+                name: medMatch[1].trim(),
+                dosage: medMatch[2].trim(),
+                frequency: medMatch[3]?.trim() || "daily",
+              });
+            }
+          }
+        }
+
+        // Save prescription to Firestore
+        const db = firestoreDb();
+        const prescriptionId = `pres_${timestamp}`;
+        const userDocRef = doc(db, "users", user.uid);
+        const prescriptionRef = doc(collection(userDocRef, "prescriptions"), prescriptionId);
+        
+        await setDoc(prescriptionRef, {
+          fileUrl: imageUrl,
+          uploadedBy: user.uid,
+          uploadedAt: serverTimestamp(),
+          extractedText: extractedText,
+          medicines: allMedicines,
+          status: extractedText ? "processed" : "ocr_failed",
+          verifiedMedicines: [],
+          ocrMethod: "client-side",
+        }, { merge: true });
+
+        // Notify doctors and family if medicines were extracted
+        if (allMedicines.length > 0) {
+          try {
+            await fetch("/api/prescription/notify-extracted", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                userId: user.uid,
+                prescriptionId: prescriptionId,
+                medicines: allMedicines,
+              }),
+            });
+          } catch (notifyError) {
+            console.error("Failed to send notifications:", notifyError);
+          }
+        }
+
+        setProcessingProgress(100);
+        
+        // Small delay to show completion, then redirect
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setProcessing(false);
+
+        // Redirect to dashboard to see results
+        if (allMedicines.length > 0) {
+          window.location.href = "/dashboard#upload";
+        } else {
+          window.location.href = "/dashboard#upload";
+        }
+      } catch (ocrError: any) {
+        console.error("OCR recognition error:", ocrError);
+        setProcessing(false);
+        alert(`⚠️ OCR processing encountered an issue. The file has been uploaded. Redirecting to dashboard where you can try again or add medicines manually.`);
+        window.location.href = "/dashboard#upload";
+      }
+    } catch (error: any) {
+      console.error("Error processing file:", error);
+      setProcessing(false);
+      alert(`Failed to upload: ${error.message || "Unknown error"}. Redirecting to dashboard...`);
     window.location.href = "/dashboard#upload";
+    }
   };
 
   return (
@@ -122,6 +275,38 @@ export default function Home() {
         onTakePhoto={handlePhotoCapture}
         medicineName="Prescription"
       />
+
+      {/* Processing Overlay */}
+      {processing && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="rounded-2xl bg-white p-8 shadow-2xl dark:bg-zinc-900 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="mb-4">
+                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                  <span className="text-3xl">📷</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+                Processing Prescription...
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                This may take a moment. Please wait.
+              </p>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-2 dark:bg-gray-700">
+                <div
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${processingProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {processingProgress}% complete
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Start Guide */}
       <section className="card p-8 space-y-6">

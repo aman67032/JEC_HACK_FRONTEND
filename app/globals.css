@@ -53,26 +53,8 @@
   --font-heading: var(--font-poppins);
 }
 
-/* Advanced dark mode with gradient-inspired tones */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1A1518; /* Deep warm dark */
-    --foreground: #F5E9E0; /* Warm cream text */
-    --muted-text: #C9B8B0; /* Soft warm gray */
-    --surface: #241F22; /* Rich dark surface */
-    --border: #3A2F32; /* Warm dark border */
-    --accent: #FF6B5E; /* Bright warm red */
-    --accent-hover: #FF5547;
-    --accent-secondary: #FFB347; /* Warm gold */
-    --accent-tertiary: #FFD180; /* Light gold */
-    --sage: #8FB87F; /* Muted green */
-    --sage-hover: #7BA569;
-    --sage-light: #A8D5A5;
-    --magenta: #B85C7A; /* Lighter magenta for dark */
-    --lavender: #C49FD4; /* Softer lavender */
-    --warm-orange: #E6A380; /* Brighter orange */
-  }
-}
+/* Dark mode disabled - theme stays consistent regardless of system preference */
+/* To enable dark mode, use a class-based approach with a manual toggle */
 
 body {
   background: var(--background);

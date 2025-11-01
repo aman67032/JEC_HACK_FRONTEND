@@ -10,6 +10,8 @@ export default function EmergencyButton() {
   const { state } = useStore();
   const [linkId, setLinkId] = useState<string | null>(null);
   const [origin, setOrigin] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -21,26 +23,52 @@ export default function EmergencyButton() {
     const user = firebaseAuth().currentUser;
     const { profile, medications } = state;
     
-    if (!profile.name) {
-      alert("Please complete your profile first.");
+    // Reset error state
+    setError(null);
+    
+    // Check authentication
+    if (!user) {
+      alert("Please log in first to generate your Smart Med Card.");
       return;
     }
     
+    // Check profile completion
+    if (!profile.name || profile.name.trim() === "") {
+      alert("Please complete your profile first (add your name in Profile section).");
+      return;
+    }
+    
+    setIsGenerating(true);
+    
     try {
       const res = await createEmergencySummary({
-        userId: user?.uid,
+        userId: user.uid,
         patientName: profile.name,
         age: profile.age,
-        conditions: profile.conditions,
-        allergies: profile.allergies,
-        currentMedications: medications.map((m) => ({ name: m.name, dosage: m.dosage, frequency: m.frequency })),
+        conditions: profile.conditions || [],
+        allergies: profile.allergies || [],
+        currentMedications: medications.map((m) => ({ 
+          name: m.name, 
+          dosage: m.dosage, 
+          frequency: m.frequency 
+        })),
         emergencyContact: undefined,
         ttlMinutes: 30
       });
+      
+      if (res && res.summaryId) {
       setLinkId(res.summaryId);
-    } catch (error) {
+        console.log("✅ Smart Med Card generated successfully:", res.summaryId);
+      } else {
+        throw new Error("Invalid response from emergency summary creation");
+      }
+    } catch (error: any) {
       console.error("Error generating emergency summary:", error);
-      alert("Failed to generate emergency card. Please try again.");
+      const errorMessage = error?.message || "Unknown error occurred";
+      setError(errorMessage);
+      alert(`Failed to generate emergency card: ${errorMessage}\n\nPlease try again or contact support.`);
+    } finally {
+      setIsGenerating(false);
     }
   }
 
@@ -54,10 +82,16 @@ export default function EmergencyButton() {
       <div className="flex flex-col items-start gap-3">
         <button 
           onClick={generate} 
-          className="inline-flex items-center justify-center rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+          disabled={isGenerating}
+          className="inline-flex items-center justify-center rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          🚨 Generate Smart Med Card
+          {isGenerating ? "⏳ Generating..." : "🚨 Generate Smart Med Card"}
         </button>
+        {error && (
+          <div className="text-xs text-red-600 dark:text-red-400">
+            Error: {error}
+          </div>
+        )}
         {linkId && emergencyUrl && (
           <div className="mt-2 flex items-center gap-4">
             <QRCodeSVG value={emergencyUrl} size={96} />

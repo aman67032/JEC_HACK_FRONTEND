@@ -7,7 +7,7 @@
 # Scroll to "Your apps" section → Click on your web app → Copy from the config object
 
 NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyD6Q8kqJyB8RroIi5ags3WqzvkkhQSVk1k
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=health-connect-d256d.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=health-connect-d256d.web.app
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=health-connect-d256d
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=health-connect-d256d.firebasestorage.app
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=581962389987

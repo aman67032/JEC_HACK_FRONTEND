@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Tesseract from "tesseract.js";
 import { useStore } from "@/lib/store";
-import { firebaseAuth, firebaseStorage } from "@/lib/firebaseClient";
+import { firebaseAuth, firebaseStorage, firestoreDb } from "@/lib/firebaseClient";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function UploadSection() {
   const { state, setState } = useStore();
@@ -134,12 +135,141 @@ export default function UploadSection() {
 
   async function runClientOCR() {
     if (!files || files.length === 0) return;
-    const results: string[] = [];
-    for (const file of Array.from(files)) {
-      const image = URL.createObjectURL(file);
-      const { data } = await Tesseract.recognize(image, "eng");
-      results.push(data.text);
+    
+    const user = firebaseAuth().currentUser;
+    if (!user) {
+      throw new Error("You must be logged in to scan prescriptions");
     }
+
+    const results: string[] = [];
+    const allMedicines: Array<{ name: string; dosage: string; frequency?: string }> = [];
+    
+    for (const file of Array.from(files)) {
+      try {
+        // Check if file is an image (not PDF)
+        const isImage = file.type.startsWith("image/");
+        const isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+        
+        if (isPDF) {
+          // PDFs must use server-side OCR
+          throw new Error("PDF files require server-side OCR. Please enable 'Use server OCR' option.");
+        }
+
+        if (!isImage) {
+          throw new Error(`Unsupported file type: ${file.type}. Please upload an image file.`);
+        }
+
+        // Upload file to Firebase Storage first
+        const timestamp = Date.now();
+        const fileName = `prescription_${timestamp}_${file.name}`;
+        const storageRef = ref(firebaseStorage(), `prescriptions/${user.uid}/${fileName}`);
+        
+        await uploadBytes(storageRef, file);
+        const imageUrl = await getDownloadURL(storageRef);
+
+        // Run client-side OCR with better error handling
+        let extractedText = "";
+        let imageUrlForOCR: string | null = null;
+        
+        try {
+          // Use FileReader to create a data URL that Tesseract can read reliably
+          const fileReader = new FileReader();
+          
+          imageUrlForOCR = await new Promise<string>((resolve, reject) => {
+            fileReader.onload = (e) => {
+              if (e.target?.result && typeof e.target.result === "string") {
+                resolve(e.target.result);
+              } else {
+                reject(new Error("Failed to read file"));
+              }
+            };
+            fileReader.onerror = () => reject(new Error("Failed to read file"));
+            fileReader.readAsDataURL(file);
+          });
+
+          // Run OCR with data URL
+          const { data } = await Tesseract.recognize(imageUrlForOCR, "eng", {
+            logger: (m) => {
+              if (m.status === "recognizing text") {
+                // Optional: update progress
+                console.log(`OCR progress: ${Math.round(m.progress * 100)}%`);
+              }
+            },
+          });
+          extractedText = data.text;
+          results.push(extractedText);
+        } catch (ocrError: any) {
+          console.error("OCR recognition error:", ocrError);
+          // If OCR fails, still save the upload but with empty text
+          extractedText = "";
+          results.push(`OCR failed for ${file.name}: ${ocrError.message}`);
+    }
+
+        // Parse medicines from extracted text
+        if (extractedText) {
+          const lines = extractedText.split("\n").filter(line => line.trim());
+          for (const line of lines) {
+            const medMatch = line.match(/([A-Za-z\s]+?)\s*[-–—]?\s*(\d+\s*(?:mg|ml|tablets?)?)\s*[-–—]?\s*([\d\/day\s]+)?/i);
+            if (medMatch) {
+              allMedicines.push({
+                name: medMatch[1].trim(),
+                dosage: medMatch[2].trim(),
+                frequency: medMatch[3]?.trim() || "daily",
+              });
+            }
+          }
+        }
+
+        // Save prescription to Firestore
+        const db = firestoreDb();
+        const prescriptionId = `pres_${timestamp}`;
+        const userDocRef = doc(db, "users", user.uid);
+        const prescriptionRef = doc(collection(userDocRef, "prescriptions"), prescriptionId);
+        
+        await setDoc(prescriptionRef, {
+          fileUrl: imageUrl,
+          uploadedBy: user.uid,
+          uploadedAt: serverTimestamp(),
+          extractedText: extractedText,
+          medicines: allMedicines,
+          status: extractedText ? "processed" : "ocr_failed",
+          verifiedMedicines: [],
+          ocrMethod: "client-side",
+        }, { merge: true });
+
+        // Notify doctors and family if medicines were extracted
+        if (allMedicines.length > 0) {
+          try {
+            // Call API to notify doctors and family
+            await fetch("/api/prescription/notify-extracted", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                userId: user.uid,
+                prescriptionId: prescriptionId,
+                medicines: allMedicines,
+              }),
+            });
+          } catch (notifyError) {
+            console.error("Failed to send notifications:", notifyError);
+            // Don't fail the upload if notification fails
+          }
+        }
+      } catch (error: any) {
+        console.error(`Error processing file ${file.name}:`, error);
+        const errorMsg = error.message || "Unknown error";
+        results.push(`Error processing ${file.name}: ${errorMsg}`);
+        
+        // If it's a PDF or unsupported file type, suggest using server OCR
+        if (errorMsg.includes("PDF") || errorMsg.includes("Unsupported")) {
+          alert(`${errorMsg}\n\nTip: Enable "Use server OCR" for PDF files and better accuracy.`);
+        }
+      }
+    }
+
+    // Format extracted medicines for display
     const meds = results
       .join("\n")
       .split(/\n|,|;/)

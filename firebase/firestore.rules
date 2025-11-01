@@ -6,13 +6,54 @@ service cloud.firestore {
     function isCaregiverOf(userData) {
       return isSignedIn() && userData.caregivers != null && userData.caregivers.hasOnly([request.auth.uid]) == false && request.auth.uid in userData.caregivers;
     }
+    
+    // Helper function to check if current user is a doctor
+    function isDoctor() {
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+    }
+    
+    // Helper function for doctor claim (check token or document)
+    function hasDoctorClaim() { 
+      return isSignedIn() && (
+        request.auth.token.role == 'doctor' || isDoctor()
+      );
+    }
+    
+    // Helper function to check if doctor is connected to a patient
+    function isDoctorOfPatient(patientId) {
+      return isSignedIn() && (
+        // Check if doctor has patient in their patients subcollection
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/patients/$(patientId)) ||
+        // Or check if doctor is in patient's privacy.shareWithDoctorIds
+        (exists(/databases/$(database)/documents/users/$(patientId)) &&
+         get(/databases/$(database)/documents/users/$(patientId)).data.privacy != null &&
+         get(/databases/$(database)/documents/users/$(patientId)).data.privacy.shareWithDoctorIds != null &&
+         request.auth.uid in get(/databases/$(database)/documents/users/$(patientId)).data.privacy.shareWithDoctorIds)
+      );
+    }
 
     // Users
     match /users/{userId} {
-      allow read: if isOwner(userId);
+      // Allow read: owner, or any authenticated user (to verify patient exists for connection)
+      allow read: if isOwner(userId) || isSignedIn();
       allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isOwner(userId);
+      // Allow update: owner, or doctor connecting to patient (updating privacy.shareWithDoctorIds only)
+      allow update: if isOwner(userId) || 
+        (isDoctor() && 
+         request.auth.uid != userId &&
+         (!resource.exists || 
+          (request.resource.data.privacy != null && 
+           request.resource.data.privacy.shareWithDoctorIds != null &&
+           request.auth.uid in request.resource.data.privacy.shareWithDoctorIds)));
       allow delete: if false;
+    }
+    
+    // Doctor's patients subcollection (for doctor/patient connections)
+    match /users/{doctorId}/patients/{patientId} {
+      // Allow read/write: if doctorId matches current user (doctor managing their own patients)
+      allow read, write: if isSignedIn() && request.auth.uid == doctorId;
     }
 
     // Medications
@@ -31,7 +72,6 @@ service cloud.firestore {
     }
 
     // Dosage Change Logs (doctor write allowed via custom claims)
-    function hasDoctorClaim() { return isSignedIn() && request.auth.token.role == 'doctor'; }
     match /users/{userId}/dosageChangeLogs/{changeId} {
       allow read: if isOwner(userId) || (exists(/databases/$(database)/documents/users/$(userId)) && isCaregiverOf(get(/databases/$(database)/documents/users/$(userId)).data));
       allow create: if isOwner(userId) || hasDoctorClaim();
@@ -40,7 +80,13 @@ service cloud.firestore {
 
     // Prescriptions (readable by doctor)
     match /users/{userId}/prescriptions/{prescriptionId} {
-      allow read: if isOwner(userId) || hasDoctorClaim();
+      allow read: if isOwner(userId) || hasDoctorClaim() || isDoctorOfPatient(userId);
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // Medical Reports (readable by doctor and caregivers)
+    match /users/{userId}/medicalReports/{reportId} {
+      allow read: if isOwner(userId) || hasDoctorClaim() || isDoctorOfPatient(userId) || (exists(/databases/$(database)/documents/users/$(userId)) && isCaregiverOf(get(/databases/$(database)/documents/users/$(userId)).data));
       allow create, update, delete: if isOwner(userId);
     }
 
@@ -57,8 +103,12 @@ service cloud.firestore {
 
     // Public read via one-time token stored elsewhere (optional extension)
     match /publicEmergency/{summaryId} {
+      // Allow public read if not expired
       allow read: if resource.data.expiresAt > request.time;
-      allow write: if false;
+      // Allow authenticated users to create their own emergency summaries
+      allow create: if isSignedIn() && request.resource.data.patientId == request.auth.uid;
+      // Allow users to update/delete their own summaries
+      allow update, delete: if isSignedIn() && resource.data.patientId == request.auth.uid;
     }
 
     // Drug interaction cache (read-only public)
@@ -80,5 +130,3 @@ service cloud.firestore {
     }
   }
 }
-
-

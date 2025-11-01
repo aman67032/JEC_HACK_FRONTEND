@@ -36,12 +36,10 @@ export default function DashboardPage() {
           const userData = userDoc.data();
           const role = userData.role;
           
-          // Redirect doctors
+          // Redirect doctors to doctor dashboard
           if (role === "doctor") {
-            if (userData.verificationStatus !== "submitted" && userData.isVerified !== true) {
-              router.push("/doctor/dashboard");
-              return;
-            }
+            router.push("/doctor/dashboard");
+            return;
           }
           
           // Redirect family members to family dashboard

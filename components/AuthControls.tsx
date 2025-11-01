@@ -20,8 +20,8 @@ export default function AuthControls() {
   if (!userEmail) {
     return (
       <>
-        <a href="/login" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Login</a>
-        <a href="/signup" className="rounded-full px-5 py-2 text-lg font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Sign Up</a>
+        <a href="/login" className="rounded-full px-5 py-2 text-xl font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Login</a>
+        <a href="/signup" className="rounded-full px-5 py-2 text-xl font-semibold tracking-wide text-[color:var(--color-foreground)] hover:bg-black/[.04]">Sign Up</a>
       </>
     );
   }
@@ -29,15 +29,15 @@ export default function AuthControls() {
   return (
     <div className="flex items-center gap-3">
       <a href="/profile" className="flex items-center gap-2 rounded-full px-3 py-2 hover:bg-black/[.04]">
-        <UserAvatar size={28} />
+        <UserAvatar size={32} />
         <div className="flex flex-col">
           {displayName && (
-            <span className="text-xs font-semibold text-[color:var(--color-foreground)] leading-tight">{displayName}</span>
+            <span className="text-sm font-semibold text-[color:var(--color-foreground)] leading-tight">{displayName}</span>
           )}
-          <span className="text-xs text-[color:var(--color-muted)] leading-tight">{userEmail}</span>
+          <span className="text-sm text-[color:var(--color-muted)] leading-tight">{userEmail}</span>
         </div>
       </a>
-      <button onClick={() => signOut(firebaseAuth())} className="rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--color-foreground)] hover:bg-black/[.06]">Sign out</button>
+      <button onClick={() => signOut(firebaseAuth())} className="rounded-full px-4 py-2 text-lg font-semibold text-[color:var(--color-foreground)] hover:bg-black/[.06]">Sign out</button>
     </div>
   );
 }

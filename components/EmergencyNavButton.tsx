@@ -157,7 +157,7 @@ export default function EmergencyNavButton() {
     <button
       onClick={handleEmergency}
       disabled={isLoading}
-      className="ml-3 inline-flex items-center justify-center rounded-full bg-red-600 px-5 py-2 text-lg font-bold tracking-wide text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      className="ml-3 inline-flex items-center justify-center rounded-full bg-red-600 px-5 py-2 text-xl font-bold tracking-wide text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       title="Emergency - Alert family and call ambulance"
     >
       {isLoading ? "⏳ Processing..." : "🚨 Emergency"}

@@ -10,7 +10,7 @@ let analytics: Analytics | null = null;
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyD6Q8kqJyB8RroIi5ags3WqzvkkhQSVk1k",
-  authDomain: "health-connect-d256d.firebaseapp.com",
+  authDomain: "health-connect-d256d.web.app",
   projectId: "health-connect-d256d",
   storageBucket: "health-connect-d256d.firebasestorage.app",
   messagingSenderId: "581962389987",

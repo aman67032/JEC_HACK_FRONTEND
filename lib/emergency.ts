@@ -21,20 +21,31 @@ export async function createEmergencySummary(params: {
   // Get origin safely (works in browser)
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
+  // Build payload, omitting undefined values (Firestore doesn't allow undefined)
   const payload: EmergencySummaryDoc = {
     summaryId,
     generatedAt: nowIso,
     expiresAt: expiresAtIso,
     patientId: params.userId ?? "public",
     patientName: params.patientName,
-    age: params.age,
-    conditions: params.conditions,
-    allergies: params.allergies,
     currentMedications: params.currentMedications,
-    emergencyContact: params.emergencyContact,
     qrLink: `${origin}/emergency/${summaryId}`,
     status: "active"
   };
+
+  // Only add optional fields if they have values
+  if (params.age !== undefined && params.age !== null) {
+    payload.age = params.age;
+  }
+  if (params.conditions && Array.isArray(params.conditions) && params.conditions.length > 0) {
+    payload.conditions = params.conditions;
+  }
+  if (params.allergies && Array.isArray(params.allergies) && params.allergies.length > 0) {
+    payload.allergies = params.allergies;
+  }
+  if (params.emergencyContact && typeof params.emergencyContact === "object") {
+    payload.emergencyContact = params.emergencyContact;
+  }
 
   try {
     // Write to public collection (readable without auth while not expired)

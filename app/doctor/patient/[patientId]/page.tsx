@@ -3,7 +3,7 @@
 import RequireAuth from "@/components/RequireAuth";
 import { firebaseAuth, firestoreDb } from "@/lib/firebaseClient";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, collection, getDoc, getDocs } from "firebase/firestore";
+import { doc, collection, getDoc, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
@@ -17,6 +17,17 @@ interface MedicationInfo {
   endDate?: string;
 }
 
+interface ReportInfo {
+  id: string;
+  type: "prescription" | "report";
+  date: any;
+  fileName?: string;
+  fileUrl?: string;
+  extractedText?: string;
+  medicines?: Array<{ name: string; dosage: string }>;
+  reportType?: string;
+}
+
 export default function PatientProfilePage() {
   const params = useParams();
   const patientId = params?.patientId as string;
@@ -26,6 +37,8 @@ export default function PatientProfilePage() {
   const [patientInfo, setPatientInfo] = useState<any>(null);
   const [medications, setMedications] = useState<MedicationInfo[]>([]);
   const [doctorId, setDoctorId] = useState<string | null>(null);
+  const [reports, setReports] = useState<ReportInfo[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(firebaseAuth(), async (user) => {
@@ -62,6 +75,9 @@ export default function PatientProfilePage() {
         });
         
         setMedications(medsList);
+
+        // Load patient reports
+        await loadPatientReports(patientId);
       } catch (e: any) {
         console.error("Error loading patient profile:", e);
         setError(e?.message || "Failed to load patient profile");
@@ -72,6 +88,82 @@ export default function PatientProfilePage() {
 
     return () => unsub();
   }, [patientId]);
+
+  async function loadPatientReports(patientId: string) {
+    setReportsLoading(true);
+    try {
+      const reportsList: ReportInfo[] = [];
+      
+      // Fetch prescriptions
+      const presRef = collection(firestoreDb(), `users/${patientId}/prescriptions`);
+      const presQ = query(presRef, orderBy("uploadedAt", "desc"), limit(50));
+      const presSnap = await getDocs(presQ);
+      
+      presSnap.docs.forEach((doc) => {
+        const data = doc.data();
+        reportsList.push({
+          id: doc.id,
+          type: "prescription",
+          date: data.uploadedAt,
+          fileUrl: data.fileUrl,
+          extractedText: data.extractedText,
+          medicines: data.medicines || [],
+        });
+      });
+      
+      // Fetch medical reports
+      const reportsRef = collection(firestoreDb(), `users/${patientId}/medicalReports`);
+      const reportsQ = query(reportsRef, orderBy("uploadedAt", "desc"), limit(50));
+      const reportsSnap = await getDocs(reportsQ);
+      
+      reportsSnap.docs.forEach((doc) => {
+        const data = doc.data();
+        reportsList.push({
+          id: doc.id,
+          type: "report",
+          date: data.uploadedAt,
+          fileName: data.fileName,
+          fileUrl: data.fileUrl,
+          reportType: data.reportType,
+        });
+      });
+      
+      // Sort by date
+      reportsList.sort((a, b) => {
+        const dateA = a.date?.toDate ? a.date.toDate().getTime() : new Date(a.date).getTime();
+        const dateB = b.date?.toDate ? b.date.toDate().getTime() : new Date(b.date).getTime();
+        return dateB - dateA;
+      });
+      
+      setReports(reportsList);
+    } catch (e: any) {
+      console.error("Error loading patient reports:", e);
+    } finally {
+      setReportsLoading(false);
+    }
+  }
+
+  function formatDate(dateInput: any): string {
+    try {
+      let date: Date;
+      if (dateInput?.toDate) {
+        date = dateInput.toDate();
+      } else if (typeof dateInput === "string") {
+        date = new Date(dateInput);
+      } else {
+        return "Unknown date";
+      }
+      return date.toLocaleDateString("en-GB", { 
+        day: "2-digit", 
+        month: "short", 
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "Unknown date";
+    }
+  }
 
   if (loading) {
     return (
@@ -225,6 +317,91 @@ export default function PatientProfilePage() {
                       </span>
                     </div>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
+          <h2 className="mb-4 text-xl font-semibold">Patient Reports ({reports.length})</h2>
+          {reportsLoading ? (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading reports...</p>
+          ) : reports.length === 0 ? (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">No reports found for this patient.</p>
+          ) : (
+            <div className="grid gap-4">
+              {reports.map((report) => (
+                <div
+                  key={report.id}
+                  className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+                >
+                  <div className="mb-2 flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                          report.type === "prescription"
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                            : "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                        }`}>
+                          {report.type === "prescription" ? "📋 Prescription" : "📄 Medical Report"}
+                        </span>
+                        {report.reportType && report.type === "report" && (
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {report.reportType}
+                          </span>
+                        )}
+                      </div>
+                      {report.fileName && (
+                        <p className="mb-1 text-sm font-medium">{report.fileName}</p>
+                      )}
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {formatDate(report.date)}
+                      </p>
+                    </div>
+                    {report.fileUrl && (
+                      <a
+                        href={report.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-2 rounded-lg bg-blue-50 px-3 py-1 text-sm text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900"
+                      >
+                        View
+                      </a>
+                    )}
+                  </div>
+
+                  {report.type === "prescription" && report.medicines && report.medicines.length > 0 && (
+                    <div className="mt-2 rounded bg-zinc-50 p-2 dark:bg-zinc-800">
+                      <p className="mb-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                        Extracted Medicines:
+                      </p>
+                      <ul className="text-xs text-zinc-700 dark:text-zinc-300">
+                        {report.medicines.slice(0, 5).map((med, idx) => (
+                          <li key={idx}>
+                            • {med.name} - {med.dosage}
+                          </li>
+                        ))}
+                        {report.medicines.length > 5 && (
+                          <li className="text-zinc-500 dark:text-zinc-400">
+                            ... and {report.medicines.length - 5} more
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+
+                  {report.type === "prescription" && report.extractedText && (
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+                        View extracted text
+                      </summary>
+                      <div className="mt-2 max-h-32 overflow-y-auto rounded bg-zinc-50 p-2 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                        {report.extractedText.substring(0, 500)}
+                        {report.extractedText.length > 500 && "..."}
+                      </div>
+                    </details>
+                  )}
                 </div>
               ))}
             </div>

@@ -100,6 +100,9 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      // Notify doctors and family about extracted medicines
+      await notifyPrescriptionExtracted(userId, medicines, prescriptionId);
+
       // Trigger automatic drug interaction check
       await checkDrugInteractions(userId, medicines.map(m => m.name));
     }
@@ -254,6 +257,136 @@ async function sendInteractionAlert(userId: string, warnings: string[]): Promise
     // TODO: Send FCM push notification if FCM tokens available
   } catch (error) {
     console.error("Failed to send interaction alert:", error);
+  }
+}
+
+/**
+ * Notify connected doctors and family members when medicines are extracted from prescription
+ */
+async function notifyPrescriptionExtracted(
+  userId: string,
+  medicines: Array<{ name: string; dosage: string; frequency?: string }>,
+  prescriptionId: string
+): Promise<void> {
+  try {
+    const db = getFirestoreAdmin();
+    const userDoc = await db.collection("users").doc(userId).get();
+    if (!userDoc.exists) return;
+
+    const userData = userDoc.data();
+    const patientName = userData?.name || "Patient";
+    
+    // Get connected doctors from privacy settings
+    const privacy = userData?.privacy || {};
+    const doctorIds: string[] = Array.isArray(privacy.shareWithDoctorIds) 
+      ? privacy.shareWithDoctorIds 
+      : [];
+    
+    // Get connected family/caregivers
+    const caregivers: string[] = Array.isArray(userData?.caregivers) 
+      ? userData.caregivers 
+      : [];
+
+    // Create medicine list text
+    const medicineList = medicines
+      .map(m => `• ${m.name} - ${m.dosage}${m.frequency ? ` (${m.frequency})` : ""}`)
+      .join("\n");
+
+    const notificationMessage = `New prescription uploaded. Extracted ${medicines.length} medicine(s):\n${medicineList}`;
+
+    // Notify connected doctors
+    for (const doctorId of doctorIds) {
+      try {
+        await db.collection("users").doc(doctorId).collection("notifications").add({
+          type: "prescription_extracted",
+          patientId: userId,
+          patientName: patientName,
+          prescriptionId: prescriptionId,
+          title: "📋 New Prescription Uploaded",
+          message: `${patientName} uploaded a prescription with ${medicines.length} medicine(s) extracted via OCR.`,
+          medicines: medicines,
+          medicineList: medicineList,
+          timestamp: FieldValue.serverTimestamp(),
+          read: false,
+          priority: "normal",
+        });
+
+        // Send FCM notification to doctor
+        try {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/notifications/fcm`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId: doctorId,
+                type: "prescription_extracted",
+                title: "📋 New Prescription - " + patientName,
+                message: `${medicines.length} medicine(s) extracted: ${medicines.slice(0, 2).map(m => m.name).join(", ")}${medicines.length > 2 ? "..." : ""}`,
+                data: {
+                  patientId: userId,
+                  patientName: patientName,
+                  prescriptionId: prescriptionId,
+                  medicinesCount: medicines.length,
+                },
+              }),
+            }
+          );
+        } catch (fcmError) {
+          console.error(`Failed to send FCM to doctor ${doctorId}:`, fcmError);
+        }
+      } catch (error) {
+        console.error(`Failed to notify doctor ${doctorId}:`, error);
+      }
+    }
+
+    // Notify connected family/caregivers
+    for (const caregiverId of caregivers) {
+      try {
+        await db.collection("users").doc(caregiverId).collection("notifications").add({
+          type: "prescription_extracted",
+          patientId: userId,
+          patientName: patientName,
+          prescriptionId: prescriptionId,
+          title: "📋 New Prescription Uploaded",
+          message: `${patientName} uploaded a prescription with ${medicines.length} medicine(s) extracted via OCR.`,
+          medicines: medicines,
+          medicineList: medicineList,
+          timestamp: FieldValue.serverTimestamp(),
+          read: false,
+          priority: "normal",
+        });
+
+        // Send FCM notification to caregiver
+        try {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/notifications/fcm`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId: caregiverId,
+                type: "prescription_extracted",
+                title: "📋 New Prescription - " + patientName,
+                message: `${medicines.length} medicine(s) extracted: ${medicines.slice(0, 2).map(m => m.name).join(", ")}${medicines.length > 2 ? "..." : ""}`,
+                data: {
+                  patientId: userId,
+                  patientName: patientName,
+                  prescriptionId: prescriptionId,
+                  medicinesCount: medicines.length,
+                },
+              }),
+            }
+          );
+        } catch (fcmError) {
+          console.error(`Failed to send FCM to caregiver ${caregiverId}:`, fcmError);
+        }
+      } catch (error) {
+        console.error(`Failed to notify caregiver ${caregiverId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to send prescription extraction notifications:", error);
   }
 }
 
